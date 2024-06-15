@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, File, UploadFile, Form
 from pydantic import BaseModel
 from pymongo import MongoClient
 from datetime import datetime, timezone
@@ -20,6 +20,17 @@ from langchain_google_vertexai import VertexAIEmbeddings
 from dotenv import load_dotenv
 import os
 
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_google_vertexai import VertexAIEmbeddings
+
+#from langchain_google_vertexai import VertexAIEmbeddings
+
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from dotenv import load_dotenv
+from langchain_pinecone import PineconeVectorStore
+
 load_dotenv()
 
 os.environ['PINECONE_API_KEY'] = os.getenv('PINECONE_API_KEY')
@@ -31,6 +42,13 @@ PROJECT_ID = os.getenv('VERTEX_PROJECT_ID')
 index_name = os.getenv('PINECONE_INDEX')
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 print(ca_cert_path)
 # MongoDB setup
 MONGO_URI = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
@@ -218,6 +236,41 @@ async def get_generate(request: Request):
         return summary
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+# Create the documents folder if it does not exist
+if not os.path.exists('documents'):
+    os.makedirs('documents')
+
+@app.post("/upload")
+async def upload_file(name: str = Form(...), file: UploadFile = File(...)):
+    try:
+        file_path = os.path.join('documents', f"{name}.pdf")
+        
+        with open(file_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+
+        loader = PyPDFLoader("documents/"+f"{name}.pdf")
+        pages = loader.load()
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=20,
+            length_function=len,
+            is_separator_regex=False,
+        )
+        doc_splits = text_splitter.split_documents(pages)
+
+        embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
+
+        docsearch = PineconeVectorStore.from_documents(doc_splits, embeddings, index_name=index_name, namespace=name)
+
+        print(docsearch)
+        
+        return JSONResponse(status_code=200, content={"message": "File uploaded successfully"})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": str(e)})
 
 
 if __name__ == "__main__":
