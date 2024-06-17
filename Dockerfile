@@ -1,5 +1,5 @@
 # Use the official Python 3.12 image
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 # Install system-level dependencies
 RUN apt-get update && \
@@ -21,4 +21,4 @@ EXPOSE 8080
 
 # Start your FastAPI application with Uvicorn
 # Notice the use of "exec" and shell format to allow environment variable expansion
-CMD exec uvicorn app:app --host 0.0.0.0 --port $PORT
+CMD exec uvicorn app:app --host 0.0.0.0 --port 8080
