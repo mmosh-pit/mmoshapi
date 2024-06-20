@@ -13,6 +13,7 @@ from vertexai.generative_models import (
     Tool,
 )
 import certifi
+import requests
 
 from langchain_pinecone import PineconeVectorStore
 
@@ -26,7 +27,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 
 #from langchain_google_vertexai import VertexAIEmbeddings
 
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from dotenv import load_dotenv
 from langchain_pinecone import PineconeVectorStore
@@ -49,10 +50,10 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],  # Allow all headers
 )
-print(ca_cert_path)
+
 # MongoDB setup
-#MONGO_URI = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
-MONGO_URI = os.getenv('MONGO_URI')
+MONGO_URI = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
+#MONGO_URI = os.getenv('MONGO_URI')
 client = MongoClient(MONGO_URI)
 db = client.get_database("moral_panic_bot")
 
@@ -118,7 +119,7 @@ def generate_function_call(prompt: str, username: str, project_id: str, location
     get_information_func = FunctionDeclaration(
         name="get_information",
         description=(
-            "Provide comprehensive information to answer any type of question the user may have. This function is triggered whenever a user requests information or asks a question, regardless of the topic."
+            "Provide information that will help answer the user's question"
         ),
         parameters={
             "type": "object",
@@ -135,7 +136,7 @@ def generate_function_call(prompt: str, username: str, project_id: str, location
         "System Instructions: You are an AI bot designed to assist users. Your primary functions are: "
         "\n1. **Command Execution:** When a user's query clearly indicates the intent to execute a specific command (e.g., starting a process, earning rewards, displaying the main menu, checking the status, joining communities, etc.), respond by sending ONLY that command, without any additional text."
         "\n2. **Information Provision:** When a user's query seeks information, provide a comprehensive and informative response."
-        "\n\nRemember, your goal is to be helpful and informative, Only use information that you learn, do not make up information"
+        "\n\nRemember, your goal is to be helpful and informative, Only use information that you learn from getting information, do not make up information"
     )
 
 
@@ -230,35 +231,51 @@ if not os.path.exists('documents'):
     os.makedirs('documents')
 
 @app.post("/upload")
-async def upload_file(name: str = Form(...), file: UploadFile = File(...)):
+async def upload_file(name: str = Form(...), url: str = Form(...)):
     try:
-        file_path = os.path.join('documents', f"{name}.pdf")
-        
-        with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
+        response = requests.get(url)
+        if response.status_code == 200:
+            content_type = response.headers.get('Content-Type')
 
+            print(content_type)
+            
+            if 'application/pdf' in content_type:
+                file_extension = 'pdf'
+            elif 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in content_type:
+                file_extension = 'docx'
+            else:
+                return JSONResponse(status_code=400, content={"message": "Unsupported file type"})
+            
+            file_path = os.path.join('documents', f"{name}.{file_extension}")
+            with open(file_path, "wb") as buffer:
+                buffer.write(response.content)
+            
+            if file_extension == 'pdf':
+                loader = PyPDFLoader(file_path)
+            elif file_extension == 'docx':
+                loader = Docx2txtLoader(file_path)
+            else:
+                return JSONResponse(status_code=400, content={"message": "Unsupported file type"})
 
-        loader = PyPDFLoader("documents/"+f"{name}.pdf")
-        pages = loader.load()
+            pages = loader.load()
 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=20,
-            length_function=len,
-            is_separator_regex=False,
-        )
-        doc_splits = text_splitter.split_documents(pages)
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000,
+                chunk_overlap=20,
+                length_function=len,
+                is_separator_regex=False,
+            )
+            doc_splits = text_splitter.split_documents(pages)
 
-        embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
+            embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
 
-        docsearch = PineconeVectorStore.from_documents(doc_splits, embeddings, index_name=index_name, namespace=name)
-
-        print(docsearch)
-        
-        return JSONResponse(status_code=200, content={"message": "File uploaded successfully"})
+            PineconeVectorStore.from_documents(doc_splits, embeddings, index_name=index_name, namespace=name)
+            
+            return JSONResponse(status_code=200, content={"message": "File uploaded successfully"})
+        else:
+            return JSONResponse(status_code=402, content={"message": f"Failed to download file. Status code: {response.status_code}"})
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": str(e)})
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
