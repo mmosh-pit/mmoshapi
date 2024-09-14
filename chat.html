@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Application</title>
+    <title>MMOSH AI Chat</title>
     <style>
         /* Reset and base styles */
         * {
@@ -200,126 +200,129 @@
         </footer>
     </div>
 
-    
     <script>
- // DOM Elements
-const chatMessages = document.getElementById('chat-messages');
-const chatInput = document.getElementById('chat-input');
-const sendButton = document.getElementById('send-button');
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
 
-// Chat functionality
-let isWaitingForResponse = false;
+        // Chat functionality
+        let isWaitingForResponse = false;
 
-function addMessage(content, isUser = false) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
-    messageElement.textContent = content;
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    return messageElement;
-}
-
-function createTypingIndicator() {
-    const indicator = document.createElement('div');
-    indicator.classList.add('typing-indicator');
-    indicator.innerHTML = '<span></span><span></span><span></span>';
-    return indicator;
-}
-
-function disableInput() {
-    chatInput.disabled = true;
-    sendButton.disabled = true;
-    isWaitingForResponse = true;
-}
-
-function enableInput() {
-    chatInput.disabled = false;
-    sendButton.disabled = false;
-    isWaitingForResponse = false;
-    chatInput.focus();
-}
-
-function showError(message) {
-    const errorElement = document.createElement('div');
-    errorElement.classList.add('error-message');
-    errorElement.textContent = message;
-    chatMessages.appendChild(errorElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-async function sendMessage() {
-    const message = chatInput.value.trim();
-    if (message && !isWaitingForResponse) {
-        addMessage(message, true);
-        chatInput.value = '';
-        disableInput();
-
-        const botMessageElement = addMessage('', false);
-        const typingIndicator = createTypingIndicator();
-        botMessageElement.appendChild(typingIndicator);
-
-        try {
-            const response = await fetch('https://mmoshapi-uodcouqmia-uc.a.run.app/generate_stream/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: 'username', // Replace with actual username logic
-                    prompt: message,
-                    coinsList: [] // Add coin list if needed e.g coinsList: ["BTC", "Eth"] 
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let botResponse = '';
-
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value, { stream: true });
-                botResponse += chunk;
-
-                botMessageElement.textContent = botResponse;
-                botMessageElement.appendChild(typingIndicator);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showError('Sorry, there was an error processing your request.');
-        } finally {
-            if (botMessageElement.contains(typingIndicator)) {
-                botMessageElement.removeChild(typingIndicator);
-            }
-            enableInput();
+        function addMessage(content, isUser = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+            messageElement.textContent = content;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageElement;
         }
-    }
-}
 
-// Event Listeners
-sendButton.addEventListener('click', sendMessage);
+        function createTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.classList.add('typing-indicator');
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            return indicator;
+        }
 
-chatInput.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        sendMessage();
-    }
-});
+        function disableInput() {
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            isWaitingForResponse = true;
+        }
 
-// Initial focus
-chatInput.focus();
+        function enableInput() {
+            chatInput.disabled = false;
+            sendButton.disabled = false;
+            isWaitingForResponse = false;
+            chatInput.focus();
+        }
 
-// Remove any existing typing indicators on load
-document.addEventListener('DOMContentLoaded', () => {
-    const existingIndicators = document.querySelectorAll('.typing-indicator');
-    existingIndicators.forEach(indicator => indicator.remove());
-});
+        function showError(message) {
+            const errorElement = document.createElement('div');
+            errorElement.classList.add('error-message');
+            errorElement.textContent = message;
+            chatMessages.appendChild(errorElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message && !isWaitingForResponse) {
+                addMessage(message, true);
+                chatInput.value = '';
+                disableInput();
+
+                const botMessageElement = addMessage('', false);
+                const typingIndicator = createTypingIndicator();
+                botMessageElement.appendChild(typingIndicator);
+
+                //const apiUrl = "http://localhost:8080/generate_stream/";
+                const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: 'unique_user', // Replace with actual username logic
+                            prompt: message,
+                            namespaces: ["facts"], 
+                            metafield: "" // Add metadata value if needed, or leave it empty
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let botResponse = '';
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value, { stream: true });
+                        botResponse += chunk;
+
+                        botMessageElement.textContent = botResponse;
+                        botMessageElement.appendChild(typingIndicator);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('Sorry, there was an error processing your request.');
+                } finally {
+                    if (botMessageElement.contains(typingIndicator)) {
+                        botMessageElement.removeChild(typingIndicator);
+                    }
+                    enableInput();
+                }
+            }
+        }
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+
+        chatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initial focus
+        chatInput.focus();
+
+        // Remove any existing typing indicators on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const existingIndicators = document.querySelectorAll('.typing-indicator');
+            existingIndicators.forEach(indicator => indicator.remove());
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Namespaces Information</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .metadata {
+            max-width: 300px;
+            overflow-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fetch Namespaces Information</h1>
+    <button id="fetchButton">Fetch Data</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('fetchButton').addEventListener('click', async function() {
+            try {
+                const response = await fetch('https://mmoshapi-471939176450.us-central1.run.app/fetch_namespaces');
+                if (response.ok) {
+                    const data = await response.json();
+                    displayData(data.namespaces);
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to fetch data');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Failed to fetch data: ' + error.message;
+            }
+        });
+
+        function displayData(namespaces) {
+            let tableHtml = '<table><tr><th>Namespace</th><th>Vector Count</th><th>Unique Metadata</th></tr>';
+            for (const ns of namespaces) {
+                tableHtml += `<tr>
+                    <td>${ns.namespace}</td>
+                    <td>${ns.vector_count}</td>
+                    <td class="metadata">${ns.unique_metadata.join(', ')}</td>
+                </tr>`;
+            }
+            tableHtml += '</table>';
+            document.getElementById('result').innerHTML = tableHtml;
+        }
+    </script>
+</body>
+</html>
