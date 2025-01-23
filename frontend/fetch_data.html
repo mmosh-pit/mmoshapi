@@ -35,7 +35,7 @@
         .addEventListener("click", async function () {
           try {
             const response = await fetch(
-              "http://localhost:8080/fetch_namespaces"
+              "https://mmoshapi-471939176450.us-central1.run.app/fetch_namespaces"
             );
             if (response.ok) {
               const data = await response.json();

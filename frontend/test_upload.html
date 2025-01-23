@@ -51,17 +51,22 @@
       <input type="text" id="name" name="name" required />
 
       <label for="metadata">Metadata:</label>
-      <input type="text" id="metadata" name="metadata"  />
+      <input type="text" id="metadata" name="metadata" />
 
       <!--
         <label for="fileInput">Audio File (WAV):</label>
         <input type="file" id="fileInput" name="file" accept=".wav">
         -->
-      
+
       <label for="textInput">Text Input:</label>
-      <textarea  id="textInput" name="textInput" placeholder="Enter text" cols="30" rows="10"></textarea>
-    
-    
+      <textarea
+        id="textInput"
+        name="textInput"
+        placeholder="Enter text"
+        cols="30"
+        rows="10"
+      ></textarea>
+
       <div id="urlInputs">
         <div class="url-input">
           <input
@@ -86,19 +91,17 @@
     <div id="result"></div>
 
     <script>
-
-      function checkTextorUrl(){
+      function checkTextorUrl() {
         const textInput = document.getElementById("textInput").value;
         const urlInput = document.getElementById("urlInputs");
-        
 
-      if (!textInput && !urlInput) {
-        return false; // Prevent form submission
+        if (!textInput && !urlInput) {
+          return false; // Prevent form submission
+        }
+
+        return true; // Allow form submission
       }
 
-      return true; // Allow form submission
-    }
-      
       function addUrlInput() {
         const urlInputs = document.getElementById("urlInputs");
         const newInput = document.createElement("div");
@@ -117,67 +120,57 @@
       document
         .getElementById("uploadForm")
         .addEventListener("submit", async function (event) {
-
           event.preventDefault();
 
           if (!checkTextorUrl()) {
-
-          document.getElementById("result").innerText =
-              "Please fill in either the Text Input or the URL field."}
-          else {
-
-          const formData = new FormData();
-          formData.append("name", document.getElementById("name").value);
-          formData.append(
-            "metadata",
-            document.getElementById("metadata").value
-          );
-
-
-          
-          const urlInputs = document.getElementsByName("urls");
-          if (urlInputs) {
-            formData.append("urls", "None");
-          }
-          else{
-            urlInputs.forEach((input) => {
-            
-              formData.append("urls", input.value);
-            
-            
-          })}
-          
-         
-
-          const textInput = document.getElementById("textInput").value;
-          if (textInput) {
-            formData.append("text", textInput);
-          } 
-          else {
-            formData.append("text", "None");
-          }
-          try {
-            const response = await fetch("http://localhost:8080/upload", {
-              method: "POST",
-              body: formData,
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-              document.getElementById("result").innerText =
-                "Files uploaded successfully: " + result.message;
-            } else {
-              document.getElementById("result").innerText =
-                "File upload failed: " + result.message;
-            }
-          } catch (error) {
-            console.error("Error:", error);
             document.getElementById("result").innerText =
-              "File upload failed: " + error.toString();
-          }}
-         
+              "Please fill in either the Text Input or the URL field.";
+          } else {
+            const formData = new FormData();
+            formData.append("name", document.getElementById("name").value);
+            formData.append(
+              "metadata",
+              document.getElementById("metadata").value
+            );
 
-          
+            const urlInputs = document.getElementsByName("urls");
+            if (urlInputs) {
+              formData.append("urls", "None");
+            } else {
+              urlInputs.forEach((input) => {
+                formData.append("urls", input.value);
+              });
+            }
+
+            const textInput = document.getElementById("textInput").value;
+            if (textInput) {
+              formData.append("text", textInput);
+            } else {
+              formData.append("text", "None");
+            }
+            try {
+              const response = await fetch(
+                "https://mmoshapi-471939176450.us-central1.run.app/upload",
+                {
+                  method: "POST",
+                  body: formData,
+                }
+              );
+
+              const result = await response.json();
+              if (response.ok) {
+                document.getElementById("result").innerText =
+                  "Files uploaded successfully: " + result.message;
+              } else {
+                document.getElementById("result").innerText =
+                  "File upload failed: " + result.message;
+              }
+            } catch (error) {
+              console.error("Error:", error);
+              document.getElementById("result").innerText =
+                "File upload failed: " + error.toString();
+            }
+          }
         });
     </script>
   </body>
