@@ -76,7 +76,7 @@ def generate_function_call(prompt: str, project_id: str, location: str) -> str:
     user_prompt_content = Content(
         role="user",
         parts=[
-            Part.from_text("You are a AI bot which talk to user and help them execute specific commands if their query relates to any of the function. you help in sending a specific command that relates to user query. every function has 1 command. If user query matches any of the function, send the command of that function, no extra detail. Do not make assumptions on anything. Just send the command inside the relevant function like /start, /earn, /settings, /status, no extra details should be sent. only send the command. If user query is doesnot relate to any of the function command, send a generic message and tell them what you can do. "+prompt),
+            Part.text("You are a AI bot which talk to user and help them execute specific commands if their query relates to any of the function. you help in sending a specific command that relates to user query. every function has 1 command. If user query matches any of the function, send the command of that function, no extra detail. Do not make assumptions on anything. Just send the command inside the relevant function like /start, /earn, /settings, /status, no extra details should be sent. only send the command. If user query is doesnot relate to any of the function command, send a generic message and tell them what you can do. "+prompt),
         ],
     )
 

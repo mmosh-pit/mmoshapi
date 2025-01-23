@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Files</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label {
+        font-weight: bold;
+      }
+      input,
+      button {
+        padding: 5px;
+        font-size: 16px;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+      }
+      .url-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .remove-url {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Upload Files</h1>
+    <form id="uploadForm">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="metadata">Metadata:</label>
+      <input type="text" id="metadata" name="metadata"  />
+
+      <!--
+        <label for="fileInput">Audio File (WAV):</label>
+        <input type="file" id="fileInput" name="file" accept=".wav">
+        -->
+      
+      <label for="textInput">Text Input:</label>
+      <textarea  id="textInput" name="textInput" placeholder="Enter text" cols="30" rows="10"></textarea>
+    
+    
+      <div id="urlInputs">
+        <div class="url-input">
+          <input
+            type="url"
+            name="urls"
+            placeholder="Enter URL of PDF/DOCX file"
+          />
+          <button
+            type="button"
+            class="remove-url"
+            onclick="removeUrlInput(this)"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+
+      <button type="button" onclick="addUrlInput()">Add URL</button>
+
+      <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+
+      function checkTextorUrl(){
+        const textInput = document.getElementById("textInput").value;
+        const urlInput = document.getElementById("urlInputs");
+        
+
+      if (!textInput && !urlInput) {
+        return false; // Prevent form submission
+      }
+
+      return true; // Allow form submission
+    }
+      
+      function addUrlInput() {
+        const urlInputs = document.getElementById("urlInputs");
+        const newInput = document.createElement("div");
+        newInput.className = "url-input";
+        newInput.innerHTML = `
+                <input type="url" name="urls" placeholder="Enter URL of PDF/DOCX file" >
+                <button type="button" class="remove-url" onclick="removeUrlInput(this)">Remove</button>
+            `;
+        urlInputs.appendChild(newInput);
+      }
+
+      function removeUrlInput(button) {
+        button.parentElement.remove();
+      }
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async function (event) {
+
+          event.preventDefault();
+
+          if (!checkTextorUrl()) {
+
+          document.getElementById("result").innerText =
+              "Please fill in either the Text Input or the URL field."}
+          else {
+
+          const formData = new FormData();
+          formData.append("name", document.getElementById("name").value);
+          formData.append(
+            "metadata",
+            document.getElementById("metadata").value
+          );
+
+
+          
+          const urlInputs = document.getElementsByName("urls");
+          if (urlInputs) {
+            formData.append("urls", "None");
+          }
+          else{
+            urlInputs.forEach((input) => {
+            
+              formData.append("urls", input.value);
+            
+            
+          })}
+          
+         
+
+          const textInput = document.getElementById("textInput").value;
+          if (textInput) {
+            formData.append("text", textInput);
+          } 
+          else {
+            formData.append("text", "None");
+          }
+          try {
+            const response = await fetch("http://localhost:8080/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              document.getElementById("result").innerText =
+                "Files uploaded successfully: " + result.message;
+            } else {
+              document.getElementById("result").innerText =
+                "File upload failed: " + result.message;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("result").innerText =
+              "File upload failed: " + error.toString();
+          }}
+         
+
+          
+        });
+    </script>
+  </body>
+</html>
