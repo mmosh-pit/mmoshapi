@@ -6,8 +6,8 @@ import certifi
 ca_cert_path = certifi.where()
 
 # MongoDB setup
-mongo_uri = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
-#MONGO_URI = os.getenv('MONGO_URI')
+#mongo_uri = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
+mongo_uri = os.getenv('MONGO_URI')
 client = MongoClient(mongo_uri)
 db = client.get_database("moral_panic_bot")
 

@@ -25,17 +25,41 @@ async def upload_file(
     urls : Optional[List[str]]  = Form(...),
     text : Optional[str]= Form(...)
 ):
-    try:
+    
+    print("DEBUG -- name:", name)
+    print("DEBUG -- metadata:", metadata)
+    print("DEBUG -- raw urls:", urls)
+    print("DEBUG -- text:", text)
+    
 
-        if urls and isinstance(urls, list) and len(urls) == 1 and urls[0] == 'None':
+    try:
+        # 1) If no URLs at all, set it to None
+        if not urls:
             urls = None
 
+        # 2) If it's a list, remove placeholders
+        elif isinstance(urls, list):
+            # Remove any items that are empty or "None"
+            cleaned_urls = []
+            for u in urls:
+                if u and u.strip().lower() != "none":
+                    cleaned_urls.append(u.strip())
 
+            if len(cleaned_urls) == 0:
+                urls = None
+            else:
+                urls = cleaned_urls
+
+        print("DEBUG -- final cleaned urls:", urls)
+
+        # Now only proceed with actual URLs
         all_documents = []
+
 
        
         if urls:
             for url in urls:
+                print("DEBUG -- calling requests.get() on url:", url)
                 response = requests.get(url)
                 if response.status_code == 200:
                     content_type = response.headers.get('Content-Type')
@@ -83,6 +107,7 @@ async def upload_file(
                         temp_text_file_path = temp_file.name
             text_splits = TextLoader(temp_text_file_path).load()
             # Clean up the temporary file
+            print(temp_text_file_path)
             os.unlink(temp_text_file_path)
 
         for doc in doc_splits:

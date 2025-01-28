@@ -268,8 +268,7 @@
           botMessageElement.appendChild(typingIndicator);
 
           //const apiUrl = "http://localhost:8080/generate_stream/";
-          const apiUrl =
-            "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
+          const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
 
           try {
             const response = await fetch(apiUrl, {
@@ -280,7 +279,7 @@
               body: JSON.stringify({
                 username: "unique_user", // Replace with actual username logic
                 prompt: message,
-                namespaces: ["facts"],
+                namespaces: ["Deepseek"],
                 metafield: "", // Add metadata value if needed, or leave it empty
               }),
             });
