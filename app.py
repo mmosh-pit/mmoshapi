@@ -13,7 +13,7 @@ from google.oauth2 import service_account
 credentials = service_account.Credentials.from_service_account_file('service_account.json')
 
 import google.generativeai as genai
-# genai.configure(api_key="AIzaSyAai2W4h20qe5j_LFvtc24pCTTU6Dc7dlo")
+genai.configure(api_key=os.getenv('GENAI_API_KEY'))
 # vertexai.init(project=project_id, location=location )
 vertexai.init(project=project_id, location=location , credentials=credentials)
 
