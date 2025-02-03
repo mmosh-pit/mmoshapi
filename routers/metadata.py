@@ -12,7 +12,7 @@ from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pinecone import Pinecone
-
+from utils.variable_constant.prompt import SYSTEM_PROMPT
 
 from utils.variable_constant.pinecone_data import index_name
 
@@ -23,13 +23,16 @@ async def upload_file(
     metadata: str = Form(...),
     file: UploadFile = File(None),
     urls : Optional[List[str]]  = Form(...),
-    text : Optional[str]= Form(...)
+    text : Optional[str]= Form(...),
+    system_prompt : Optional[str] = Form(...)
 ):
     
     print("DEBUG -- name:", name)
     print("DEBUG -- metadata:", metadata)
     print("DEBUG -- raw urls:", urls)
     print("DEBUG -- text:", text)
+    print("DEBUG -- system_prompt:", system_prompt)
+
     
 
     try:
@@ -121,11 +124,12 @@ async def upload_file(
         
         for doc in docs:
             doc.metadata['custom_metadata'] = metadata
+            doc.metadata['system_prompt'] = system_prompt if system_prompt else SYSTEM_PROMPT
             # Convert timedelta objects to strings
             for key, value in doc.metadata.items():
                 if isinstance(value, timedelta):
                     doc.metadata[key] = str(value)
-
+        print(docs)
         embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
 
         PineconeVectorStore.from_documents(docs, embeddings, index_name=index_name, namespace=name)

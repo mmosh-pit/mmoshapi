@@ -27,8 +27,7 @@ async def create_live_session():
     )
 
     # Create model with the config
-    model = GenerativeModel(model_id, generation_config=generation_config ,
-                            system_instruction = SYSTEM_PROMPT) 
+    model = GenerativeModel(model_id, generation_config=generation_config ,) 
    
     # Start a chat session (pass the system prompt here if required by a specific method)
     chat = model.start_chat()
@@ -40,22 +39,25 @@ async def generate_stream(
     username: str,
     chat_history: list[Content],
     namespaces: list[str],
-    metafield: str
+    metafield: str,
+    system_prompt : str
 ) -> AsyncGenerator[str, None]:
     """Generate streaming responses using Gemini model."""
     try:
+
+        system_prompt = SYSTEM_PROMPT if not system_prompt else system_prompt
         # Get the chat session
         chat = await create_live_session()
         
         try:
             # Get relevant context if needed
-            context = await get_relevant_context(prompt, namespaces, metafield)
+            context = await get_relevant_context(prompt, namespaces, metafield , system_prompt)
             
             # Create the full prompt
             if context:
-                full_prompt = f"{SYSTEM_PROMPT}\n\nContext: {context}\n\nUser Question: {prompt}\n\nAnswer:"
+                full_prompt = f"{system_prompt}\n\nContext: {context}\n\nUser Question: {prompt}\n\nAnswer:"
             else:
-                full_prompt = f"{SYSTEM_PROMPT}\n\nUser Question: {prompt}\n\nAnswer:"
+                full_prompt = f"{system_prompt}\n\nUser Question: {prompt}\n\nAnswer:"
             
             # Generate the streaming response
             response = chat.send_message(full_prompt, stream=True)
@@ -70,6 +72,7 @@ async def generate_stream(
             # Save the conversation after completion
             if full_response:
                 complete_response = "".join(full_response)
+                save_chat_message(username , "system" , system_prompt)
                 save_chat_message(username, "user", prompt)
                 save_chat_message(username, "model", complete_response)
 
@@ -77,6 +80,7 @@ async def generate_stream(
             print(f"Error in message processing: {str(processing_error)}")
             error_msg = "I'm having trouble processing your request. Please try again."
             yield error_msg
+            save_chat_message(username , "system" , system_prompt)
             save_chat_message(username, "user", prompt)
             save_chat_message(username, "model", error_msg)
             return
@@ -85,6 +89,7 @@ async def generate_stream(
         print(f"Session creation error: {str(session_error)}")
         error_msg = "I apologize, but I'm unable to process that request. Please try again later."
         yield error_msg
+        save_chat_message(username , "system" , system_prompt)
         save_chat_message(username, "user", prompt)
         save_chat_message(username, "model", error_msg)
         return

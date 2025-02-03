@@ -37,6 +37,23 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
 
+      /* System prompt field */
+      .system-prompt-container {
+        padding: 1rem;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .system-prompt-container input {
+        padding: 0.8rem;
+        width: 80%;
+        border: 1px solid #ccc;
+        border-radius: 1rem;
+        font-size: 1rem;
+        outline: none;
+      }
+
       /* Chat messages area */
       .chat-messages {
         flex: 1;
@@ -190,6 +207,16 @@
   <body>
     <div class="chat-container">
       <header class="chat-header">AI Chat Assistant</header>
+      
+      <!-- System Prompt Input Field -->
+      <div class="system-prompt-container">
+        <input 
+          type="text" 
+          id="system-prompt" 
+          placeholder="Enter system prompt (optional)" 
+        />
+      </div>
+
       <main class="chat-messages" id="chat-messages">
         <!-- Messages will be dynamically inserted here -->
         <div class="typing-indicator" id="typing-indicator">
@@ -214,6 +241,7 @@
       const chatMessages = document.getElementById("chat-messages");
       const chatInput = document.getElementById("chat-input");
       const sendButton = document.getElementById("send-button");
+      const systemPromptInput = document.getElementById("system-prompt");
 
       // Chat functionality
       let isWaitingForResponse = false;
@@ -258,6 +286,8 @@
 
       async function sendMessage() {
         const message = chatInput.value.trim();
+        const systemPrompt = systemPromptInput.value.trim();
+        
         if (message && !isWaitingForResponse) {
           addMessage(message, true);
           chatInput.value = "";
@@ -267,8 +297,8 @@
           const typingIndicator = createTypingIndicator();
           botMessageElement.appendChild(typingIndicator);
 
-          //const apiUrl = "http://localhost:8080/generate_stream/";
-          const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
+          const apiUrl = "http://localhost:8000/generate_stream/";
+          // const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
 
           try {
             const response = await fetch(apiUrl, {
@@ -281,6 +311,7 @@
                 prompt: message,
                 namespaces: ["Deepseek"],
                 metafield: "", // Add metadata value if needed, or leave it empty
+                system_prompt: systemPrompt, // Include system prompt
               }),
             });
 

@@ -8,13 +8,15 @@ from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (metadata , namesapce , stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
-#from google.oauth2 import service_account
+from google.oauth2 import service_account
 
-#credentials = service_account.Credentials.from_service_account_file('service_account.json')
+credentials = service_account.Credentials.from_service_account_file('service_account.json')
 
 import google.generativeai as genai
-genai.configure(api_key="AIzaSyAai2W4h20qe5j_LFvtc24pCTTU6Dc7dlo")
-vertexai.init(project=project_id, location=location)
+# genai.configure(api_key="AIzaSyAai2W4h20qe5j_LFvtc24pCTTU6Dc7dlo")
+# vertexai.init(project=project_id, location=location )
+vertexai.init(project=project_id, location=location , credentials=credentials)
+
 
 load_dotenv()
 

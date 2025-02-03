@@ -14,6 +14,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
         prompt = data.get('prompt')
         namespaces = data.get('namespaces', [])
         metafield = data.get('metafield', '')
+        system_prompt = data.get('system_prompt', '')
 
         # Validate required fields
         if not username or not prompt:
@@ -32,7 +33,8 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
                 username=username,
                 chat_history=chat_history,
                 namespaces=namespaces,
-                metafield=metafield
+                metafield=metafield,
+                system_prompt=system_prompt
             ),
             media_type="text/event-stream"
         )
