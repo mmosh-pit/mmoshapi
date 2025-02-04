@@ -17,3 +17,6 @@ class GenerateRequest(BaseModel):
     prompt: str
     namespaces: list[str] = []
     metafield: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True

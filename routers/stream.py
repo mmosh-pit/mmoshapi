@@ -24,7 +24,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
             )
 
         # Get chat history
-        chat_history = await get_chat_history(username)
+        chat_history = await get_chat_history(username , 5)
         
         # Return streaming response
         return StreamingResponse(

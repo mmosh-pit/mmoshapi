@@ -10,12 +10,11 @@ from dataclasses import dataclass
 from crud.chat import get_relevant_context
 from utils.variable_constant.vertex_google import ( model_id)
 from utils.variable_constant.prompt import SYSTEM_PROMPT
-from .chat import save_chat_message
+from .chat import save_chat_message , get_chat_history
 
 
 async def create_live_session(system_prompt):
     """Create a new live session with appropriate configuration."""
-
     
     # Generation config
     generation_config = GenerationConfig(
@@ -55,10 +54,9 @@ async def generate_stream(
             context = await get_relevant_context(prompt, namespaces, metafield )
             
             # Create the full prompt
-            if context:
-                full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:"
-            else:
-                full_prompt = f"User Question: {prompt}\n\nAnswer:"
+            
+            full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:" if context else  f"User Question: {prompt}\n\nAnswer:"
+            
             
             # Generate the streaming response
             response = chat.send_message(full_prompt, stream=True)
@@ -75,6 +73,10 @@ async def generate_stream(
                 complete_response = "".join(full_response)
                 save_chat_message(username, "user", prompt)
                 save_chat_message(username, "model", complete_response)
+
+                 # Fetch the updated chat history
+                updated_chat_history = await get_chat_history(username , 5)
+                print("Updated Chat History: ", updated_chat_history)
 
         except Exception as processing_error:
             print(f"Error in message processing: {str(processing_error)}")
