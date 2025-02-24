@@ -42,9 +42,11 @@
                 alert('Please enter a metadata value');
                 return;
             }
+            // const url = `https://mmoshapi-471939176450.us-central1.run.app/delete_by_metadata?metadata=${encodeURIComponent(metadata)}`
+            const url = `http://localhost:8000/delete_by_metadata?metadata=${encodeURIComponent(metadata)}`
 
             try {
-                const response = await fetch(`https://mmoshapi-471939176450.us-central1.run.app/delete_by_metadata?metadata=${encodeURIComponent(metadata)}`, {
+                const response = await fetch(url, {
                     method: 'DELETE'
                 });
                 const data = await response.json();

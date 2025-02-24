@@ -8,6 +8,7 @@ from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (metadata , namesapce , stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
+from langsmith import traceable
 # from google.oauth2 import service_account
 
 # credentials = service_account.Credentials.from_service_account_file('service_account.json')
@@ -53,5 +54,5 @@ if not os.path.exists('documents'):
 
 
 
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

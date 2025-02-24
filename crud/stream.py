@@ -11,8 +11,9 @@ from crud.chat import get_relevant_context
 from utils.variable_constant.vertex_google import ( model_id)
 from utils.variable_constant.prompt import SYSTEM_PROMPT
 from .chat import save_chat_message
+from langsmith import traceable
 
-
+@traceable(name="create_live_session" , run_type="tool")
 async def create_live_session(system_prompt):
     """Create a new live session with appropriate configuration."""
 
@@ -35,6 +36,7 @@ async def create_live_session(system_prompt):
     
     return chat
 
+@traceable(name="generate_stream" , run_type="tool")
 async def generate_stream(
     prompt: str,
     username: str,
@@ -47,6 +49,8 @@ async def generate_stream(
     try:
  
         system_prompt = SYSTEM_PROMPT if not system_prompt else system_prompt
+
+        print(system_prompt)
         # Get the chat session
         chat = await create_live_session(system_prompt)
         

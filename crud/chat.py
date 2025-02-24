@@ -7,8 +7,9 @@ from langchain_pinecone import PineconeVectorStore
 from datetime import datetime, timezone
 import os
 from models.database import db
+from langsmith import traceable
 
-
+@traceable(name="get_chat_history" , run_type="tool")
 async def get_chat_history(username: str) -> list[Content]:
     """Fetch chat history for a user and convert to Gen AI Content format."""
     collection = db.get_collection("users_chat_history")
@@ -16,12 +17,13 @@ async def get_chat_history(username: str) -> list[Content]:
     chat_history = []
     for message in history:
         chat_history.append(Content(
-            role=message["role"],
+            role=message["role"], #user , #model
             parts=[Part(text=message["content"])]
         ))
     
     return chat_history
 
+@traceable(name="save_chat_message" , run_type="tool")
 def save_chat_message(username: str, role: str, content: str):
     """Save a chat message to MongoDB."""
     collection = db.get_collection("users_chat_history")
@@ -31,7 +33,8 @@ def save_chat_message(username: str, role: str, content: str):
         "content": content,
         "timestamp": datetime.now(timezone.utc)
     })
-
+    
+@traceable(name="get_relevant_context" , run_type="tool")
 async def get_relevant_context(prompt: str, namespaces: list[str], metafield: str,) -> str:
     """Retrieve relevant context from Pinecone using vector search and optionally include a system prompt."""
     try:

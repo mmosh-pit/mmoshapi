@@ -3,8 +3,9 @@ from fastapi.responses import StreamingResponse
 from .router import router
 from crud.stream import generate_stream 
 from crud.chat import get_chat_history
-
+from langsmith import traceable
 @router.post("/generate_stream/")
+@traceable(name="generate_stream")
 async def get_generate_stream(request: Request) -> StreamingResponse:
     """Endpoint handler for streaming generation requests."""
     try:
