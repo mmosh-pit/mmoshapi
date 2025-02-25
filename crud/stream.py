@@ -1,43 +1,40 @@
 
-
-from google.generativeai import GenerationConfig, GenerativeModel
-from google.generativeai.protos import (
-    Content,
-)
-from typing import AsyncGenerator, List
-from dataclasses import dataclass
-
+from utils.library_calling.google_library import google_genai_model 
+from typing import AsyncGenerator
 from crud.chat import get_relevant_context
-from utils.variable_constant.vertex_google import ( model_id)
 from utils.variable_constant.prompt import SYSTEM_PROMPT
+from .chat import save_chat_message
+from langsmith import traceable
 from .chat import save_chat_message , get_chat_history
 
-
+@traceable(name="create_live_session" , run_type="tool")
 async def create_live_session(system_prompt):
     """Create a new live session with appropriate configuration."""
     
     # Generation config
-    generation_config = GenerationConfig(
-        temperature=0,
-        top_p=0.8,
-        top_k=40,
-        max_output_tokens=2048,
+    # generation_config = GenerationConfig(
+    #     temperature=0,
+    #     top_p=0.8,
+    #     top_k=40,
+    #     max_output_tokens=2048,
 
-    )
+    # )
 
-    # Create model with the config
-    model = GenerativeModel(model_id, generation_config=generation_config ,
-                            system_instruction=system_prompt) 
+    # # Create model with the config
+    # model = GenerativeModel(model_id, generation_config=generation_config ,
+    #                         system_instruction=system_prompt) 
+    google_genai_model.system_instruction = system_prompt
    
     # Start a chat session (pass the system prompt here if required by a specific method)
-    chat = model.start_chat()
+    chat = google_genai_model.start_chat()
     
     return chat
 
+@traceable(name="generate_stream" , run_type="tool")
 async def generate_stream(
     prompt: str,
     username: str,
-    chat_history: list[Content],
+    chat_history: list[str],
     namespaces: list[str],
     metafield: str,
     system_prompt : str
@@ -46,6 +43,8 @@ async def generate_stream(
     try:
  
         system_prompt = SYSTEM_PROMPT if not system_prompt else system_prompt
+
+        print(system_prompt)
         # Get the chat session
         chat = await create_live_session(system_prompt)
         

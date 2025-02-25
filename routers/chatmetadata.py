@@ -6,16 +6,15 @@ import tempfile
 from datetime import timedelta
 from typing import List , Optional
 import os
-
-from langchain_pinecone.vectorstores import PineconeVectorStore
-from langchain_google_vertexai import VertexAIEmbeddings
+from utils.library_calling.google_library import (embeddings, PineconeVectorStore)
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pinecone import Pinecone
 from utils.variable_constant.pinecone_data import index_name
-
+from langsmith import traceable
 
 @router.post("/upload")
+@traceable(name="upload-file")
 async def upload_file(
     name: str = Form(...),
     metadata: str = Form(...),
@@ -125,7 +124,6 @@ async def upload_file(
                 if isinstance(value, timedelta):
                     doc.metadata[key] = str(value)
         print(docs)
-        embeddings = VertexAIEmbeddings(model="textembedding-gecko@003")
 
         PineconeVectorStore.from_documents(docs, embeddings, index_name=index_name, namespace=name)
         
@@ -138,6 +136,8 @@ async def upload_file(
 
 
 @router.delete("/delete_by_metadata")
+@traceable(name="delete_by_metadata")
+
 async def delete_by_metadata(metadata: str):
     try:
         pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))

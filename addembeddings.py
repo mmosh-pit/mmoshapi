@@ -8,14 +8,14 @@ BUCKET_URI = f"gs://{BUCKET}"
 DIMENSIONS = 768
 
 from google.cloud import aiplatform
-from langchain_google_vertexai import VertexAIEmbeddings
-
+# from langchain_google_vertexai import VertexAIEmbeddings
+from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 aiplatform.init(project=PROJECT_ID, location=REGION, staging_bucket=BUCKET_URI)
-embedding_model = VertexAIEmbeddings(model_name="textembedding-gecko@003")
+embedding_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
 my_index = aiplatform.MatchingEngineIndex(index_name='projects/879529711942/locations/northamerica-northeast1/indexes/6523323322757808128')
 

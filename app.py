@@ -8,14 +8,18 @@ from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (chatmetadata , namesapce , stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
-# from google.oauth2 import service_account
+from langsmith import Client
+client = Client()
 
-# credentials = service_account.Credentials.from_service_account_file('service_account.json')
+from google.oauth2 import service_account
 
-import google.generativeai as genai
-genai.configure(api_key=os.getenv('GENAI_API_KEY'))
-vertexai.init(project=project_id, location=location )
-# vertexai.init(project=project_id, location=location , credentials=credentials)
+credentials = service_account.Credentials.from_service_account_file('service_account.json')
+
+
+# import google.generativeai as genai
+# genai.configure(api_key=os.getenv('GENAI_API_KEY'))
+# vertexai.init(project=project_id, location=location )
+vertexai.init(project=project_id, location=location , credentials=credentials)
 
 
 load_dotenv()
@@ -53,5 +57,5 @@ if not os.path.exists('documents'):
 
 
 
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

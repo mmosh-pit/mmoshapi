@@ -1,34 +1,15 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
-from langchain_google_vertexai import VertexAIEmbeddings
-
-from langchain_pinecone import PineconeVectorStore
+from utils.library_calling.google_library import google_genai_model 
+from utils.library_calling.google_library import (embeddings , pinecone_store)
+from utils.library_calling.google_library import (HumanMessage , SystemMessage , AIMessage)
 from typing import AsyncGenerator
 from datetime import datetime, timezone
 from utils.variable_constant.vertex_google import (project_id  ,location , model_id) 
 
 import os
 from models.database import db
+from langsmith import traceable
 
-# Initialize the Google Generative AI (Gemini) model
-google_genai_model = ChatGoogleGenerativeAI(
-    model=model_id,  # Specify the appropriate Gemini model (e.g., text-bison)
-    temperature=0,
-    top_p=0.8,
-    top_k=40,
-    max_output_tokens=2048,
-    project_id=project_id,  # Set your Google Cloud Project ID
-    location=location  # Set your Google Cloud Region
-)
-
-# Initialize the Google Generative AI embeddings
-embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
-
-# Pinecone vector store for context retrieval
-pinecone_index_name = os.getenv('PINECONE_INDEX')
-pinecone_store = PineconeVectorStore(index_name=pinecone_index_name, embedding_function=embeddings)
-
-
+@traceable(name="get_chat_history" , run_type="tool")
 async def get_chat_history(username: str , n:int) -> list:
     """Fetch chat history for a user and convert to Langchain format."""
     collection = db.get_collection("users_chat_history")
@@ -47,6 +28,7 @@ async def get_chat_history(username: str , n:int) -> list:
     print(chat_history)
     return chat_history
 
+@traceable(name="save_chat_message" , run_type="tool")
 def save_chat_message(username: str, role: str, content: str):
     """Save a chat message to MongoDB."""
     collection = db.get_collection("users_chat_history")
@@ -56,8 +38,9 @@ def save_chat_message(username: str, role: str, content: str):
         "content": content,
         "timestamp": datetime.now(timezone.utc)
     })
-
-async def get_relevant_context(prompt: str, namespaces: list[str], metafield: str) -> str:
+    
+@traceable(name="get_relevant_context" , run_type="tool")
+async def get_relevant_context(prompt: str, namespaces: list[str], metafield: str,) -> str:
     """Retrieve relevant context from Pinecone using vector search and optionally include a system prompt."""
     try:
         # Add "MMOSH" to the namespaces

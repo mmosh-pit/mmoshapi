@@ -5,9 +5,10 @@ import os
 import random
 from utils.variable_constant.pinecone_data import index_name
 from pinecone import Pinecone
-
+from langsmith import traceable
 
 @router.get("/fetch_namespaces")
+@traceable(name="fetch_namespaces")
 async def fetch_namespaces():
     try:
         pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
@@ -54,6 +55,7 @@ async def fetch_namespaces():
 
 
 @router.delete("/delete_namespace")
+@traceable(name="delete_namespace")
 async def delete_namespace(namespace: str):
     try:
         pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
