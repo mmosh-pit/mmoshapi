@@ -10,7 +10,6 @@ ca_cert_path = certifi.where()
 # mongo_uri = os.getenv('MONGO_URI') + f'&tls=true&tlsCAFile={ca_cert_path}'
 mongo_uri = os.getenv('MONGO_URI')
 
-print('mogo_uri', mongo_uri)
 client = MongoClient(mongo_uri)
 db = client.get_database("moral_panic_bot")
      
@@ -20,3 +19,6 @@ class GenerateRequest(BaseModel):
     prompt: str
     namespaces: list[str] = []
     metafield: str = ""
+
+    class Config:
+        arbitrary_types_allowed = True

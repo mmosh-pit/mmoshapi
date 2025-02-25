@@ -6,9 +6,7 @@ import tempfile
 from datetime import timedelta
 from typing import List , Optional
 import os
-
-from langchain_pinecone import PineconeVectorStore
-from langchain_google_vertexai import VertexAIEmbeddings
+from utils.library_calling.google_library import (embeddings, PineconeVectorStore)
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pinecone import Pinecone
@@ -126,7 +124,6 @@ async def upload_file(
                 if isinstance(value, timedelta):
                     doc.metadata[key] = str(value)
         print(docs)
-        embeddings = VertexAIEmbeddings(model_name="textembedding-gecko@003")
 
         PineconeVectorStore.from_documents(docs, embeddings, index_name=index_name, namespace=name)
         

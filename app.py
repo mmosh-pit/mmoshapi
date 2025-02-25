@@ -5,18 +5,22 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 from utils.variable_constant.vertex_google import (project_id  ,location )
-from routers import (metadata , namesapce , stream)
+from routers import (chatmetadata , namesapce , stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
-from langsmith import traceable
-# from google.oauth2 import service_account
+# from langsmith import Client
+# client = Client()
 
-# credentials = service_account.Credentials.from_service_account_file('service_account.json')
+from google.oauth2 import service_account
 
-import google.generativeai as genai
-genai.configure(api_key=os.getenv('GENAI_API_KEY'))
-vertexai.init(project=project_id, location=location )
-# vertexai.init(project=project_id, location=location , credentials=credentials)
+credentials = service_account.Credentials.from_service_account_file('service_account.json')
+# google_api_key = os.getenv('GOOGLE_API_KEY')
+# print(os.getenv('GENAI_API_KEY'))
+
+# import google.generativeai as genai
+# genai.configure(api_key=os.getenv('GENAI_API_KEY'))
+# vertexai.init(project=project_id, location=location )
+vertexai.init(project=project_id, location=location , credentials=credentials)
 
 
 load_dotenv()
@@ -41,7 +45,7 @@ app.add_middleware(
 
 
 
-app.include_router(metadata.router)
+app.include_router(chatmetadata.router)
 app.include_router(namesapce.router)
 app.include_router(stream.router)
 
