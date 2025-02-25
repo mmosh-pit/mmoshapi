@@ -8,13 +8,14 @@ from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (chatmetadata , namesapce , stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
-from langsmith import Client
-client = Client()
+# from langsmith import Client
+# client = Client()
 
 from google.oauth2 import service_account
 
 credentials = service_account.Credentials.from_service_account_file('service_account.json')
-
+# google_api_key = os.getenv('GOOGLE_API_KEY')
+# print(os.getenv('GENAI_API_KEY'))
 
 # import google.generativeai as genai
 # genai.configure(api_key=os.getenv('GENAI_API_KEY'))

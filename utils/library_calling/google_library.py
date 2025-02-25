@@ -7,7 +7,10 @@ import os
 from google.oauth2 import service_account
 
 credentials = service_account.Credentials.from_service_account_file('service_account.json')
+
+
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001" , google_api_key=os.getenv('GOOGLE_API_KEY') , credentials=credentials)
+
 google_genai_model = GoogleGenerativeAI(
     model=model_id,  # Specify the appropriate Gemini model (e.g., text-bison)
     temperature=0,
