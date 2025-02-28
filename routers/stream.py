@@ -30,7 +30,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
         # Return streaming response
         return StreamingResponse(
             generate_stream(
-                prompt=prompt,
+                prompt=prompt, 
                 username=username,
                 chat_history=chat_history,
                 namespaces=namespaces,

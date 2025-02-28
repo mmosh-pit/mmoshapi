@@ -21,7 +21,6 @@ async def create_live_session(system_prompt):
         max_output_tokens=2048,
         project_id=project_id,  # Set your Google Cloud Project ID
         location=location  ,# Set your Google Cloud Region
-        system_prompt = system_prompt
     )
     return model
     
@@ -38,8 +37,8 @@ async def generate_stream(
     """Generate streaming responses using Gemini model."""
     try:
         
- 
-        system_prompt = SYSTEM_PROMPT if not system_prompt else system_prompt
+        print(chat_history)
+        system_prompt = system_prompt if  system_prompt else SYSTEM_PROMPT
 
         # Get the chat session
         chat = await create_live_session(system_prompt)
@@ -47,19 +46,29 @@ async def generate_stream(
         try:
             # Get relevant context if needed
             context = await get_relevant_context(prompt, namespaces, metafield )
+            # print(context)
             
             # Create the full prompt
             
             full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:" if context else  f"User Question: {prompt}\n\nAnswer:"
+            # full_prompt = f"User Question: {prompt}\n\nAnswer:"
+            
+            # print("prompt" , full_prompt)
+            messages = [
+                ("system", system_prompt),
+                ("human", full_prompt),
+            ]
+            
             
             
             # Generate the streaming response
-            response = chat.stream(full_prompt)
-            # breakpoint()re
+            response = chat.stream(messages)
+
             # Process the streaming response
             full_response = []
             for chunk in response:
                 text = chunk.content  # Extract the text from the AIMessageChunk
+                print(text)
                 if text:
                     full_response.append(text)
                     yield text
@@ -72,6 +81,7 @@ async def generate_stream(
 
                  # Fetch the updated chat history
                 updated_chat_history = await get_chat_history(username , 5)
+                chat_history = updated_chat_history
                 # print("Updated Chat History: ", updated_chat_history)
                 
 

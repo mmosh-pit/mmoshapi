@@ -1,4 +1,4 @@
-from utils.library_calling.google_library import google_genai_model 
+
 from utils.library_calling.google_library import (embeddings , pinecone_store)
 from utils.library_calling.google_library import (HumanMessage , SystemMessage , AIMessage)
 from typing import AsyncGenerator
@@ -13,7 +13,7 @@ from langsmith import traceable
 async def get_chat_history(username: str , n:int) -> list:
     """Fetch chat history for a user and convert to Langchain format."""
     collection = db.get_collection("users_chat_history")
-    history = collection.find({"username": username}).sort("timestamp", 1).limit(n)
+    history = collection.find({"username": username}).sort("timestamp", -1).limit(n)
     
     # Return the messages as a list of dictionaries for Langchain compatibility
     chat_history = []
@@ -25,7 +25,7 @@ async def get_chat_history(username: str , n:int) -> list:
             chat_history.append(AIMessage(content=message["content"]))
         elif message["role"] == "system":
             chat_history.append(SystemMessage(content=message["content"]))
-    print(chat_history)
+    # print(chat_history)
     return chat_history
 
 @traceable(name="save_chat_message" , run_type="tool")
@@ -45,18 +45,24 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
     try:
         # Add "MMOSH" to the namespaces
         search_namespaces = namespaces + ["MMOSH"]
-        
+   
         all_search_results = []
+
+        # Convert prompt into an embedding before searching
+        embedded_query = embeddings.embed_query(prompt)  # Ensure you are using the correct embedding model
+
 
         for namespace in search_namespaces:
             # Search in Pinecone for the relevant documents
-            search_results = pinecone_store.similarity_search(
-                prompt,
+            search_results = pinecone_store.similarity_search_by_vector(
+                embedded_query,
                 namespace=namespace,
-                filter={"custom_metadata": metafield} if metafield and namespace != "MMOSH" else None
+                filter={"custom_metadata": metafield} if metafield and namespace != "MMOSH" else None,
             )
             
             all_search_results.extend(search_results)
+
+  
 
         # Combine all relevant information
         relevant_info = []

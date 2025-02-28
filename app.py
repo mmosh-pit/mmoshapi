@@ -11,16 +11,16 @@ import vertexai
 # from langsmith import Client
 # client = Client()
 
-from google.oauth2 import service_account
+# from google.oauth2 import service_account
 
-credentials = service_account.Credentials.from_service_account_file('service_account.json')
+# credentials = service_account.Credentials.from_service_account_file('service_account.json')
 # google_api_key = os.getenv('GOOGLE_API_KEY')
 # print(os.getenv('GENAI_API_KEY'))
 
-# import google.generativeai as genai
-# genai.configure(api_key=os.getenv('GENAI_API_KEY'))
-# vertexai.init(project=project_id, location=location )
-vertexai.init(project=project_id, location=location , credentials=credentials)
+import google.generativeai as genai
+genai.configure(api_key=os.getenv('GENAI_API_KEY'))
+vertexai.init(project=project_id, location=location )
+# vertexai.init(project=project_id, location=location , credentials=credentials)
 
 
 load_dotenv()
