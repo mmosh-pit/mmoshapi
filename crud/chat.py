@@ -45,24 +45,21 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
     try:
         # Add "MMOSH" to the namespaces
         search_namespaces = namespaces + ["MMOSH"]
-   
-        all_search_results = []
 
-        # Convert prompt into an embedding before searching
-        embedded_query = embeddings.embed_query(prompt)  # Ensure you are using the correct embedding model
-
+        all_search_results = []  # Make sure to initialize your list
 
         for namespace in search_namespaces:
-            # Search in Pinecone for the relevant documents
-            search_results = pinecone_store.similarity_search_by_vector(
-                embedded_query,
+            # Search in Pinecone for the relevant documents with scores
+            search_results = pinecone_store.similarity_search_with_score(
+                prompt,
                 namespace=namespace,
                 filter={"custom_metadata": metafield} if metafield and namespace != "MMOSH" else None,
             )
             
-            all_search_results.extend(search_results)
-
-  
+            # Filter and add only those results with a score of at least 0.6
+            for doc, score in search_results:
+                if score >= 0.6:
+                    all_search_results.append(doc)
 
         # Combine all relevant information
         relevant_info = []
@@ -71,7 +68,9 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
 
         return " ".join(relevant_info)
 
+
     except Exception as e:
+        print(str(e))
         print(f"Error retrieving context: {str(e)}")
         return ""
 

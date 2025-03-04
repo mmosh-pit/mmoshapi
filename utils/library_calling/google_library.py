@@ -4,12 +4,12 @@ from langchain.schema import HumanMessage, SystemMessage, AIMessage
 from langchain_pinecone import PineconeVectorStore
 from utils.variable_constant.vertex_google import (project_id  ,location , model_id) 
 import os
-from google.oauth2 import service_account
+# from google.oauth2 import service_account
 
-credentials = service_account.Credentials.from_service_account_file('service_account.json')
+# credentials = service_account.Credentials.from_service_account_file('D:\All Desktop\iGenX\mmoshapi\service_account.json')
 
 
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001" , google_api_key=os.getenv('GOOGLE_API_KEY') , credentials=credentials)
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001" , google_api_key=os.getenv('GENAI_API_KEY'))
 
 
 

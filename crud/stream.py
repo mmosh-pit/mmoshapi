@@ -37,29 +37,26 @@ async def generate_stream(
     """Generate streaming responses using Gemini model."""
     try:
         
-        print(chat_history)
         system_prompt = system_prompt if  system_prompt else SYSTEM_PROMPT
 
         # Get the chat session
         chat = await create_live_session(system_prompt)
         
         try:
-            # Get relevant context if needed
+            # Get relevant context 
             context = await get_relevant_context(prompt, namespaces, metafield )
-            # print(context)
             
             # Create the full prompt
             
             full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:" if context else  f"User Question: {prompt}\n\nAnswer:"
-            # full_prompt = f"User Question: {prompt}\n\nAnswer:"
-            
-            # print("prompt" , full_prompt)
+  
             messages = [
                 ("system", system_prompt),
-                ("human", full_prompt),
+                # ("chat_history", chat_history),
+                ("human", full_prompt),  
             ]
-            
-            
+
+            # [(),()] list of chat history  , unlimited chat history
             
             # Generate the streaming response
             response = chat.stream(messages)
@@ -68,7 +65,6 @@ async def generate_stream(
             full_response = []
             for chunk in response:
                 text = chunk.content  # Extract the text from the AIMessageChunk
-                print(text)
                 if text:
                     full_response.append(text)
                     yield text
