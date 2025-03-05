@@ -13,6 +13,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
         data = await request.json()
         username = data.get('username')
         prompt = data.get('prompt')
+        chat_history = data.get('chat_history', [])
         namespaces = data.get('namespaces', [])
         metafield = data.get('metafield', '')
         system_prompt = data.get('system_prompt', '')
@@ -24,13 +25,13 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
                 detail="Username and prompt fields are required"
             )
 
-        # Get chat history
-        chat_history = await get_chat_history(username , 5)
+        # # Get chat history
+        # chat_history = await get_chat_history(username , 5)
         
         # Return streaming response
         return StreamingResponse(
             generate_stream(
-                prompt=prompt,
+                prompt=prompt, 
                 username=username,
                 chat_history=chat_history,
                 namespaces=namespaces,

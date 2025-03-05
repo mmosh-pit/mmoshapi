@@ -1,4 +1,4 @@
-from utils.library_calling.google_library import google_genai_model 
+
 from utils.library_calling.google_library import (embeddings , pinecone_store)
 from utils.library_calling.google_library import (HumanMessage , SystemMessage , AIMessage)
 from typing import AsyncGenerator
@@ -13,7 +13,7 @@ from langsmith import traceable
 async def get_chat_history(username: str , n:int) -> list:
     """Fetch chat history for a user and convert to Langchain format."""
     collection = db.get_collection("users_chat_history")
-    history = collection.find({"username": username}).sort("timestamp", 1).limit(n)
+    history = collection.find({"username": username}).sort("timestamp", -1).limit(n)
     
     # Return the messages as a list of dictionaries for Langchain compatibility
     chat_history = []
@@ -25,7 +25,7 @@ async def get_chat_history(username: str , n:int) -> list:
             chat_history.append(AIMessage(content=message["content"]))
         elif message["role"] == "system":
             chat_history.append(SystemMessage(content=message["content"]))
-    print(chat_history)
+    # print(chat_history)
     return chat_history
 
 @traceable(name="save_chat_message" , run_type="tool")
@@ -45,18 +45,21 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
     try:
         # Add "MMOSH" to the namespaces
         search_namespaces = namespaces + ["MMOSH"]
-        
-        all_search_results = []
+
+        all_search_results = []  # Make sure to initialize your list
 
         for namespace in search_namespaces:
-            # Search in Pinecone for the relevant documents
-            search_results = pinecone_store.similarity_search(
+            # Search in Pinecone for the relevant documents with scores
+            search_results = pinecone_store.similarity_search_with_score(
                 prompt,
                 namespace=namespace,
-                filter={"custom_metadata": metafield} if metafield and namespace != "MMOSH" else None
+                filter={"custom_metadata": metafield} if metafield and namespace != "MMOSH" else None,
             )
             
-            all_search_results.extend(search_results)
+            # Filter and add only those results with a score of at least 0.6
+            for doc, score in search_results:
+                if score >= 0.6:
+                    all_search_results.append(doc)
 
         # Combine all relevant information
         relevant_info = []
@@ -65,7 +68,9 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
 
         return " ".join(relevant_info)
 
+
     except Exception as e:
+        print(str(e))
         print(f"Error retrieving context: {str(e)}")
         return ""
 

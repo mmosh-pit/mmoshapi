@@ -21,7 +21,6 @@ async def create_live_session(system_prompt):
         max_output_tokens=2048,
         project_id=project_id,  # Set your Google Cloud Project ID
         location=location  ,# Set your Google Cloud Region
-        system_prompt = system_prompt
     )
     return model
     
@@ -38,24 +37,30 @@ async def generate_stream(
     """Generate streaming responses using Gemini model."""
     try:
         
- 
-        system_prompt = SYSTEM_PROMPT if not system_prompt else system_prompt
+        system_prompt = system_prompt if  system_prompt else SYSTEM_PROMPT
 
         # Get the chat session
         chat = await create_live_session(system_prompt)
         
         try:
-            # Get relevant context if needed
+            # Get relevant context 
             context = await get_relevant_context(prompt, namespaces, metafield )
             
             # Create the full prompt
             
             full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:" if context else  f"User Question: {prompt}\n\nAnswer:"
-            
+  
+            messages = [
+                ("system", system_prompt),
+                # ("chat_history", chat_history),
+                ("human", full_prompt),  
+            ]
+
+            # [(),()] list of chat history  , unlimited chat history
             
             # Generate the streaming response
-            response = chat.stream(full_prompt)
-            # breakpoint()re
+            response = chat.stream(messages)
+
             # Process the streaming response
             full_response = []
             for chunk in response:
@@ -72,6 +77,7 @@ async def generate_stream(
 
                  # Fetch the updated chat history
                 updated_chat_history = await get_chat_history(username , 5)
+                chat_history = updated_chat_history
                 # print("Updated Chat History: ", updated_chat_history)
                 
 
