@@ -32,7 +32,8 @@ async def generate_stream(
     chat_history: list[str],
     namespaces: list[str],
     metafield: str,
-    system_prompt : str
+    system_prompt : str,
+    url : str
 ) -> AsyncGenerator[str, None]:
     """Generate streaming responses using Gemini model."""
     try:
@@ -53,46 +54,40 @@ async def generate_stream(
             messages = [
                 ("system", system_prompt),
                 # ("chat_history", chat_history),
-                ("human", full_prompt),  
             ]
+            
+            for chats in chat_history:
+                messages.extend(tuple(chats))
+
+            messages.append(("human", full_prompt))
+
+            print(messages)
 
             # [(),()] list of chat history  , unlimited chat history
             
             # Generate the streaming response
             response = chat.stream(messages)
 
-            # Process the streaming response
-            full_response = []
-            for chunk in response:
-                text = chunk.content  # Extract the text from the AIMessageChunk
-                if text:
-                    full_response.append(text)
-                    yield text
+            if url == "generate":
+                yield response
+            else: 
+                # Process the streaming response
+                full_response = []
+                for chunk in response:
+                    text = chunk.content  # Extract the text from the AIMessageChunk
+                    if text:
+                        full_response.append(text)
+                        yield text
             
-            # Save the conversation after completion
-            if full_response:
-                complete_response = "".join(full_response)
-                save_chat_message(username, "user", prompt)
-                save_chat_message(username, "model", complete_response)
-
-                 # Fetch the updated chat history
-                updated_chat_history = await get_chat_history(username , 5)
-                chat_history = updated_chat_history
-                # print("Updated Chat History: ", updated_chat_history)
-                
 
         except Exception as processing_error:
             print(f"Error in message processing: {str(processing_error)}")
             error_msg = "I'm having trouble processing your request. Please try again."
             yield error_msg
-            save_chat_message(username, "user", prompt)
-            save_chat_message(username, "model", error_msg)
             return
 
     except Exception as session_error:
         print(f"Session creation error: {str(session_error)}")
         error_msg = "I apologize, but I'm unable to process that request. Please try again later."
         yield error_msg
-        save_chat_message(username, "user", prompt)
-        save_chat_message(username, "model", error_msg)
         return
