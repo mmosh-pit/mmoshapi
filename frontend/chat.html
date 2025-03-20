@@ -297,7 +297,7 @@
           const typingIndicator = createTypingIndicator();
           botMessageElement.appendChild(typingIndicator);
 
-          const apiUrl = "http://localhost:8000/generate/";
+          const apiUrl = "http://localhost:8080/generate_stream/";
           // const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
 
           try {
@@ -318,8 +318,9 @@
                 ["human", "I'm looking for a new phone"],
                 ["ai", "What kind of phone are you looking for?"],
                 ["human", "I'm looking for a new phone"],
-                ["ai", "What kind of phone are you looking for?"],
-              ]
+                ["ai", "What kind of phone are you looking for?"],    
+              ],
+              model : "gemma2-9b-it",
               }),
             });
 

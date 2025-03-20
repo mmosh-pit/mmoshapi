@@ -11,6 +11,7 @@ from langsmith import traceable
 async def get_generate_stream(request: Request) -> StreamingResponse:
     """Endpoint handler for streaming generation requests."""
     try:
+
         # Parse request data
         data = await request.json()
         username = data.get('username')
@@ -19,6 +20,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
         namespaces = data.get('namespaces', [])
         metafield = data.get('metafield', '')
         system_prompt = data.get('system_prompt', '')
+        model_name = data.get('model', '')
 
         # Validate required fields
         if not username or not prompt:
@@ -29,12 +31,14 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
         # Return streaming response
         return StreamingResponse(
             generate_stream(
+                model_name=model_name,
                 prompt=prompt, 
                 username=username,
                 chat_history=chat_history,
                 namespaces=namespaces,
                 metafield=metafield,
                 system_prompt=system_prompt,
+
             
             ),
             media_type="text/event-stream"
@@ -55,6 +59,8 @@ async def get_generate(request: Request) -> Response:
         namespaces = data.get('namespaces', [])
         metafield = data.get('metafield', '')
         system_prompt = data.get('system_prompt', '')
+        model_name = data.get('model', '')
+
 
         if not username or not prompt:
             raise HTTPException(
@@ -64,6 +70,7 @@ async def get_generate(request: Request) -> Response:
 
         # Get the complete response from the generate function
         result = await generate(
+            model_name=model_name,
             prompt=prompt, 
             username=username,
             chat_history=chat_history,
