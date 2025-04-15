@@ -195,3 +195,4 @@ async def generate(
     except Exception as session_error:
         print(f"Session creation error: {str(session_error)}")
         return "I apologize, but I'm unable to process that request. Please try again later."
+    

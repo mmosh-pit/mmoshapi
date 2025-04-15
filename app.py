@@ -5,9 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 from utils.variable_constant.vertex_google import (project_id  ,location )
-from routers import (chatmetadata , namesapce , stream)
+from routers import (chatmetadata , namesapce , stream , audio_stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
+
+from fastapi.staticfiles import StaticFiles
 # from langsmith import Client
 # client = Client()
 
@@ -48,9 +50,11 @@ app.add_middleware(
 app.include_router(chatmetadata.router)
 app.include_router(namesapce.router)
 app.include_router(stream.router)
+app.include_router(audio_stream.router)
 
+app.mount("/audio", StaticFiles(directory="frontend/static"), name="static")
 
-
+app.websocket_route("/ws")(audio_stream.websocket_endpoint)
 
 # Create the documents folder if it does not exist
 if not os.path.exists('documents'):
