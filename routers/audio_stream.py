@@ -20,24 +20,29 @@ load_dotenv()
 
 # Load environment variables from .env file
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+
+data_tool = {}
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
 
     # Get JSON data sent from client
     data = await websocket.receive_json()
-    print(data)
+    model_name = data.get("model_name")
+    username = data.get("username")
+    chat_history = data.get("chat_history")
+    namespaces = data.get("namespaces")
+    metafield = data.get("metafield")
+    system_prompt = data.get("system_prompt")
 
     await websocket.send_json(data)
 
     browser_receive_stream = websocket_stream(websocket)
 
-
-
     agent = OpenAIVoiceReactAgent(
         model="gpt-4o-realtime-preview",
         tools=TOOLS,
-        instructions="Answer the question as best you can.",
+        instructions=system_prompt,
     )
 
     await agent.aconnect(browser_receive_stream, websocket.send_text)
@@ -49,12 +54,6 @@ async def homepage(request: Request):
         html = f.read()
         return HTMLResponse(html)
 
-
-# # catchall route to load files from src/server/static
-# routes = [Route("/", homepage), WebSocketRoute("/ws", websocket_endpoint)]
-
-# app = Starlette(debug=True, routes=routes)
-# app.mount("/", StaticFiles(directory="frontend/static"), name="static")
 
 
 
