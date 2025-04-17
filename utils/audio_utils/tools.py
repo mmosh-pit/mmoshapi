@@ -1,47 +1,38 @@
 from langchain_core.tools import tool
-from routers.stream import generate_stream
-from fastapi.responses import StreamingResponse
-# from crud.stream import create_live_session, get_relevant_context
-# from langchain_community.tools import TavilySearchResults
+from crud.stream import  get_relevant_context
 
 @tool
-def add(a: int, b: int):
-    """Add two numbers. Please let the user know that you're adding the numbers BEFORE you call the tool"""
-    return a + b
-
-@tool
-def generate_stream_tool(
-    model: str,
+async def generate_stream_tools(
     prompt: str,
-    username: str,
-    chat_history: list[str],
     namespaces: list[str],
     metafield: str,
-    system_prompt : str
+
  ):
-    """Generate a response using the given model, prompt, and context. 
-        Please let the user know that you're generating the response BEFORE you call the tool.
+    """
+    Retrieves relevant context for the user's query based on the given prompt, namespaces, and metafield.
 
-        Parameters:
-        - model_name: The name of the model to use.
-        - prompt: The main input from the user.
-        - username: The name of the user.
-        - chat_history: List of previous chat messages.
-        - namespaces: Related tags or domains for the chat.
-        - metafield: Extra info related to the session.
-        - system_prompt: Instructions for how the model should behave.  prompt: Instructions for how the model should behave.
-        """
-    print("Generating stream...")
-    print("Model name:", model)
-    print("Prompt:", prompt)
-    print("Username:", username)
-    print("Chat history:", chat_history)
-    print("Namespaces:", namespaces)
-    print("Metafield:", metafield)
-    print("System prompt:", system_prompt)
+    This tool should be called after informing the user that a response is being generated.
 
-    return StreamingResponse(generate_stream(model, prompt, username, chat_history, namespaces, metafield, system_prompt), media_type="text/event-stream")
+    Args:
+        prompt (str): The user's input or question.
+        namespaces (list[str]): List of context namespaces.
+        metafield (str): Additional metadata for filtering context.
+
+    Returns:
+        str: Retrieved context or an error message if the process fails.
+    """
+    try:
+    
+        # Get relevant context 
+        context = await get_relevant_context(prompt, namespaces, metafield )
+        
+        return context
+    
+
+    except Exception as processing_error:
+        print(f"Error in message processing: {str(processing_error)}")
+        error_msg = "I'm having trouble processing your request. Please try again."
+        return error_msg 
 
 
-
-TOOLS = [generate_stream_tool,  add]  # Add other tools as needed
+TOOLS = [generate_stream_tools]  # Add other tools as needed

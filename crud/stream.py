@@ -104,7 +104,6 @@ async def generate_stream(
     try:
         
         system_prompt = system_prompt if  system_prompt else SYSTEM_PROMPT
-
         
         # Get the chat session
       

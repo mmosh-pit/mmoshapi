@@ -120,8 +120,9 @@
                     ws.send(JSON.stringify({ model_name : "gemini-2.0-flash",
                                                 username: "alirehman",
                                                 chat_history: [],
-                                                metafield: "",
-                                                system_prompt : "You are a helpful assistant." }));
+                                                metafield: " ",
+                                                system_prompt : "You are a helpful assistant.",
+                                            namespaces : ["deepseek3"] }));
                 };
 
                 const audioPlayer = new Player();
