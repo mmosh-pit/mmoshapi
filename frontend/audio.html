@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-time Audio Streaming</title>
+</head>
+<body>
+  <h2>Real-time Audio Stream</h2>
+  <button onclick="startStreaming()">Start</button>
+  <button onclick="stopStreaming()">Stop</button>
+
+  <script>
+    let socket;
+    let mediaRecorder;
+
+    async function startStreaming() {
+      // Connect to FastAPI WebSocket
+      socket = new WebSocket("ws://localhost:8000/ws/audio");
+      socket.binaryType = "arraybuffer";
+
+      // Get mic access
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
+          socket.send(event.data);
+        }
+      };
+
+      // Play received audio
+      socket.onmessage = (event) => {
+        const audioBlob = new Blob([event.data], { type: "audio/webm" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      };
+
+      mediaRecorder.start(200); // send chunks every 200ms
+    }
+
+    function stopStreaming() {
+      if (mediaRecorder) mediaRecorder.stop();
+      if (socket) socket.close();
+    }
+  </script>
+</body>
+</html>

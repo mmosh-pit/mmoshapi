@@ -11,8 +11,6 @@ import os
 
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001" , google_api_key=os.getenv('GENAI_API_KEY'))
 
-
-
 # Pinecone vector store for context retrieval
 pinecone_index_name = os.getenv('PINECONE_INDEX')
 pinecone_store = PineconeVectorStore(index_name=pinecone_index_name, embedding=embeddings)

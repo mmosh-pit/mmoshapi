@@ -65,6 +65,8 @@ async def get_relevant_context(prompt: str, namespaces: list[str], metafield: st
         relevant_info = []
         for doc in all_search_results:
             relevant_info.append(doc.page_content.strip())
+        
+        print(f"Relevant info: {all_search_results}")
 
         return " ".join(relevant_info)
 

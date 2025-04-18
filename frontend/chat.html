@@ -297,7 +297,7 @@
           const typingIndicator = createTypingIndicator();
           botMessageElement.appendChild(typingIndicator);
 
-          const apiUrl = "http://localhost:8000/generate_stream/";
+          const apiUrl = "http://localhost:8080/generate_stream/";
           // const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
 
           try {
@@ -311,7 +311,16 @@
                 prompt: message,
                 namespaces: ["TESTO"],
                 metafield: "", // Add metadata value if needed, or leave it empty
-                system_prompt: systemPrompt, // Include system prompt
+                system_prompt: systemPrompt, // Include system prompt,
+                chat_history : [
+                ["human", "Hi"],
+                ["ai", "Hi, how can I help you today?"],
+                ["human", "I'm looking for a new phone"],
+                ["ai", "What kind of phone are you looking for?"],
+                ["human", "I'm looking for a new phone"],
+                ["ai", "What kind of phone are you looking for?"],    
+              ],
+              model : "gemma2-9b-it",
               }),
             });
 
