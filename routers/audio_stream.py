@@ -10,7 +10,7 @@ from starlette.routing import Route, WebSocketRoute
 
 from langchain_openai_voice import OpenAIVoiceReactAgent
 
-
+import json
 from utils.audio_utils.websocket import websocket_stream
 from utils.audio_utils.tools import TOOLS
 from .router import router
@@ -35,18 +35,23 @@ async def websocket_endpoint(websocket: WebSocket):
     username = data.get("username")
     chat_history = data.get("chat_history")
     namespaces = data.get("namespaces")
-    metafield = data.get("metafield")
+    metafield = json.dumps(data.get("metafield"))
     system_prompt = data.get("system_prompt")
 
     await websocket.send_json(data)
 
     browser_receive_stream = websocket_stream(websocket)
     
-    instruction = f"""{system_prompt}. Always use the tool to get relevent context about the user's query before responding.
-        Always pass the following default values to the tool:
-        namespaces = {namespaces} and metafield = {metafield if metafield else ' '}.
-        if the context is not relavent to the user's query then provide the answer from your own knowlegde.
-        """
+    instruction = f"""{system_prompt}
+
+        Before responding to any user query, always use the tool to fetch relevant context.
+        Use the tool **every time** the user asks a query.
+
+        Always pass these default values to the tool:
+        - namespaces = {namespaces}
+        - metafield = {metafield if metafield else ' '}
+
+        if the context is not relavent to the user's query then provide the answer from your own knowlegde."""
     
     print(instruction)
 
