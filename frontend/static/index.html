@@ -113,8 +113,8 @@
 
         async function startAudio() {
             try {
-                // ws_url = "ws://localhost:8000/ws";
-                ws_url = "ws://mmoshapi-471939176450.us-central1.run.app/ws"
+                ws_url = "ws://localhost:8000/ws";
+                // ws_url = "ws://mmoshapi-471939176450.us-central1.run.app/ws"
                 const ws = new WebSocket(ws_url);
 
                 ws.onopen = () => {
