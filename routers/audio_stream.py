@@ -70,6 +70,7 @@ async def websocket_endpoint(websocket: WebSocket):
             "username": username,
             "session_id": session_id,
             "model": model,
+            "namespaces": namespaces,
             "instruction": instruction
         },
         outputs={"status": "stream_sent"},

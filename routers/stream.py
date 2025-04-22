@@ -40,6 +40,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
                 "user_id": username,
                 "session_id": session_id,
                 "model_name": model_name,
+                "namespaces": namespaces,
             }
         )
         async def traced_generate_stream():
@@ -93,6 +94,7 @@ async def get_generate(request: Request) -> Response:
                 "user_id": username,
                 "session_id": session_id,
                 "model_name": model_name,
+                 "namespaces": namespaces,
             }
         )
         async def traced_generate():
