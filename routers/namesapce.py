@@ -6,9 +6,14 @@ import random
 from utils.variable_constant.pinecone_data import index_name
 from pinecone import Pinecone
 from langsmith import traceable
+import uuid
 
 @router.get("/fetch_namespaces")
-@traceable(name="fetch_namespaces")
+@traceable(name="fetch_namespaces" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
+
 async def fetch_namespaces():
     try:
         pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
@@ -55,7 +60,10 @@ async def fetch_namespaces():
 
 
 @router.delete("/delete_namespace")
-@traceable(name="delete_namespace")
+@traceable(name="delete_namespace" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 async def delete_namespace(namespace: str):
     try:
         pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))

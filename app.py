@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI , Request
 import os
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,9 +8,10 @@ from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (chatmetadata , namesapce , stream , audio_stream)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
-
 from fastapi.staticfiles import StaticFiles
-# from langsmith import Client
+from langsmith import traceable
+from langsmith import Client
+import uuid
 # client = Client()
 
 # from google.oauth2 import service_account
@@ -25,9 +26,12 @@ vertexai.init(project=project_id, location=location )
 # vertexai.init(project=project_id, location=location , credentials=credentials)
 
 
-load_dotenv()
+load_dotenv(override=True)
 
 os.environ['PINECONE_API_KEY'] = os.getenv('PINECONE_API_KEY')
+LANGSMITH_TRACING = os.getenv('LANGSMITH_TRACING')
+
+
 
 app = FastAPI()
 

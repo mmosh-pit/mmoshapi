@@ -10,6 +10,7 @@ from utils.variable_constant.vertex_google import (project_id  ,location , model
 import os
 from utils.variable_constant.prompt import SYSTEM_PROMPT
 from langsmith import traceable
+import uuid
 from .chat import save_chat_message , get_chat_history
 
 model_name_groq = ["deepseek-r1-distill-llama-70b" , "deepseek-r1-distill-qwen-32b", "qwen-2.5-32b"  ,"qwen-qwq-32b" , "mistral-saba-24b",
@@ -30,7 +31,11 @@ open_ai_model_list  = [
 xai_model_list = ["grok-2-1212"]
 
 
-@traceable(name="create_live_session" , run_type="tool")
+
+@traceable(name="create_live_session" , run_type="tool" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 
 async def create_live_session(model_name: str):
     """Create a new live session with appropriate configuration."""
@@ -89,7 +94,10 @@ async def create_live_session(model_name: str):
     return model
     
 
-@traceable(name="generate_stream" , run_type="tool")
+@traceable(name="generate_stream" , run_type="tool" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 async def generate_stream(
     model_name: str,
     prompt: str,
@@ -153,7 +161,10 @@ async def generate_stream(
         yield error_msg
         return
     
-@traceable(name="generate" , run_type="tool")
+@traceable(name="generate" , run_type="tool" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 async def generate(
     model_name : str,
     prompt: str,

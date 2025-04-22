@@ -6,7 +6,8 @@ The MMOSH API provides a suite of endpoints for managing vectorized document sto
 ---
 
 **App URL** : [https://mmoshapi-uodcouqmia-uc.a.run.app](https://mmoshapi-uodcouqmia-uc.a.run.app)
---
+
+---
 
 ## 🔄 1. Upload Endpoint
 
@@ -93,7 +94,8 @@ Returns AI-generated text in chunks (real-time streaming).
   "namespaces": ["exampleNamespace"],
   "metafield": "",
   "system_prompt": "Provide concise answers.",
-  "model": "llama-3.2-1b-preview"
+  "model": "llama-3.2-1b-preview",
+  "session_id": "84e7cc93-b833-46f6-9312-4815f620b89d"
 }
 ```
 
@@ -122,7 +124,8 @@ Returns a full AI response based on input prompt and options.
   "namespaces": ["TESTO"],
   "metafield": "",
   "system_prompt": "Optional system prompt",
-  "model": "llama-3.2-1b-preview"
+  "model": "llama-3.2-1b-preview",
+  "session_id": "84e7cc93-b833-46f6-9312-4815f620b89d"
 }
 ```
 
@@ -133,28 +136,65 @@ Returns a full AI response based on input prompt and options.
 
 ---
 
-## 🎙 7. Voice AI (WebSocket)
+## 7. Voice AI (WebSocket)
 
-**Endpoint:** `WebSocket /ws`
+**Endpoint** : `WebSocket /ws`
 
-**Description:**  
-Streams audio from user and sends real-time AI voice responses.
+**Description:**
+Streams audio from the user and provides real-time voice-based AI responses. Internally, it uses a reactive AI agent that pulls relevant context using tools and returns streamed speech responses. All interactions are logged in LangSmith with session tracing.
 
-**Initial Config (JSON):**
+**Initial Config (Sent as JSON):**
+
 ```json
 {
-  "model_name": "gemini-2.0-flash",
   "username": "alirehman",
   "chat_history": [],
-  "metafield": " ",
+  "metafield": "user-profile-tag",
   "system_prompt": "You are a helpful assistant.",
-  "namespaces": ["deepseek3"]
+  "namespaces": ["deepseek3"],
+  "session_id" : "84e7cc93-b833-46f6-9312-4815f620b89d"
 }
 ```
 
-**Audio Stream Format:**
-- Input and output are base64-encoded PCM (24kHz).
 
+**Headers:**
+
+session_id (optional): A session identifier used for tracing (auto-generated if missing).
+
+**Instruction Logic (automatically built):**
+
+```
+{system_prompt}
+
+- Always use the tool to get context before answering.
+- Use the tool **every time** the user asks something.
+- Always include:
+- namespaces = {namespaces}
+- metafield = {metafield}
+
+If the fetched context isn’t relevant, answer using your own knowledge.
+Stop VOICE **immediately** if the user starts talking while you are answering.
+```
+
+
+**Audio Format:**
+
+Input/Output is base64-encoded PCM audio at 24kHz.
+
+Transcripts and response instructions are handled by OpenAIVoiceReactAgent.
+
+**What’s Logged to LangSmith:**
+
+username, session_id, model_name, and full instruction string.
+
+Each voice session is stored as a chain run with status stream_sent.
+
+**Response Example:**
+```
+On connection: { "status": "connected" }
+```
+
+Then: streamed voice/text response.
 ---
 
 ## 🎧 8. Audio Streaming Web Interface

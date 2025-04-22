@@ -114,15 +114,12 @@
         async function startAudio() {
             try {
                 ws_url = "ws://localhost:8000/ws";
-                // ws_url = "ws://mmoshapi-471939176450.us-central1.run.app/ws"
+                // ws_url = "wss://mmoshapi-471939176450.us-central1.run.app/ws"
                 const ws = new WebSocket(ws_url);
 
                 ws.onopen = () => {
                     // ✅ Send JSON fields on connection
-                    ws.send(JSON.stringify({ model_name : "gemini-2.0-flash",
-                                                username: "alirehman",
-                                                chat_history: [],
-                                                metafield: '{"symbol":"MOTO","name":"moto","address":"2GcdnRfYvggCy2kkF37xGwMpsbkjwHwrouosQqXFQJnx","url":"https://firebasestorage.googleapis.com/v0/b/mmosh-app.appspot.com/o/inform_documents%2FMOTO-264-1733060444266.pdf?alt=media&token=4248e8ed-4c8b-478e-8312-1bc669e6ef55"}',
+                    ws.send(JSON.stringify({ username : "alirehman", metafield: '{"symbol":"MOTO","name":"moto","address":"2GcdnRfYvggCy2kkF37xGwMpsbkjwHwrouosQqXFQJnx","url":"https://firebasestorage.googleapis.com/v0/b/mmosh-app.appspot.com/o/inform_documents%2FMOTO-264-1733060444266.pdf?alt=media&token=4248e8ed-4c8b-478e-8312-1bc669e6ef55"}',
                                                 system_prompt : "You are a helpful assistant.",
                                             namespaces : ["MOTO"] }));
                 };
