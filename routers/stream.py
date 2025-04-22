@@ -6,7 +6,9 @@ from crud.chat import get_chat_history
 from langsmith import traceable
 import os
 import uuid
-
+import os 
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 @router.post("/generate_stream/")
 async def get_generate_stream(request: Request) -> StreamingResponse:
@@ -49,6 +51,7 @@ async def get_generate_stream(request: Request) -> StreamingResponse:
                 namespaces=namespaces,
                 metafield=metafield,
                 system_prompt=system_prompt,
+                session_id=session_id,
             )
 
         # Return streaming response

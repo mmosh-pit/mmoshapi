@@ -9,7 +9,7 @@ from .router import router
 from langsmith import traceable
 import os 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 import uuid
 from langsmith import Client
 import time

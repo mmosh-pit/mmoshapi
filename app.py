@@ -32,7 +32,7 @@ os.environ['PINECONE_API_KEY'] = os.getenv('PINECONE_API_KEY')
 LANGSMITH_TRACING = os.getenv('LANGSMITH_TRACING')
 
 
-
+print("LANGSMITH_API_KEY API Key:", os.getenv('LANGSMITH_API_KEY'))
 app = FastAPI()
 
 # Add the custom middleware
