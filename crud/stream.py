@@ -10,6 +10,7 @@ from utils.variable_constant.vertex_google import (project_id  ,location , model
 import os
 from utils.variable_constant.prompt import SYSTEM_PROMPT
 from langsmith import traceable
+import uuid
 from .chat import save_chat_message , get_chat_history
 
 model_name_groq = ["deepseek-r1-distill-llama-70b" , "deepseek-r1-distill-qwen-32b", "qwen-2.5-32b"  ,"qwen-qwq-32b" , "mistral-saba-24b",
@@ -30,7 +31,11 @@ open_ai_model_list  = [
 xai_model_list = ["grok-2-1212"]
 
 
-@traceable(name="create_live_session" , run_type="tool")
+
+@traceable(name="create_live_session" , run_type="tool" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 
 async def create_live_session(model_name: str):
     """Create a new live session with appropriate configuration."""
@@ -88,8 +93,6 @@ async def create_live_session(model_name: str):
 
     return model
     
-
-@traceable(name="generate_stream" , run_type="tool")
 async def generate_stream(
     model_name: str,
     prompt: str,
@@ -97,101 +100,112 @@ async def generate_stream(
     chat_history: list[str],
     namespaces: list[str],
     metafield: str,
-    system_prompt : str,
-    
+    system_prompt: str,
+    session_id: str = " "
 ) -> AsyncGenerator[str, None]:
-    """Generate streaming responses using Gemini model."""
-    try:
-        
-        system_prompt = system_prompt if  system_prompt else SYSTEM_PROMPT
-        
-        # Get the chat session
-      
-        chat = await create_live_session(model_name)
-        
-        try:
-            # Get relevant context 
-            context = await get_relevant_context(prompt, namespaces, metafield )
-            
-            # Create the full prompt
-            
-            full_prompt = f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:" if context else  f"User Question: {prompt}\n\nAnswer:"
-  
-            messages = [
-                ("system", system_prompt),
-                # ("chat_history", chat_history),
-            ]
-            
-            for chats in chat_history:
-                messages.extend(tuple(chats))
-
-            messages.append(("human", full_prompt))
-
-            
-            # Generate the streaming response
-            response = chat.stream(messages)
-
-           
-            # Process the streaming response
-            full_response = []
-            for chunk in response:
-                text = chunk.content  # Extract the text from the AIMessageChunk
-                if text:
-                    full_response.append(text)
-                    yield text
-        
-
-        except Exception as processing_error:
-            print(f"Error in message processing: {str(processing_error)}")
-            error_msg = "I'm having trouble processing your request. Please try again."
-            yield error_msg
-            return
-
-    except Exception as session_error:
-        print(f"Session creation error: {str(session_error)}")
-        error_msg = "I apologize, but I'm unable to process that request. Please try again later."
-        yield error_msg
-        return
+    """Generate streaming responses using Gemini model with dynamic traceable logging."""
     
-@traceable(name="generate" , run_type="tool")
+    @traceable(
+        name="generate_stream",
+        run_type="tool",
+        project_name=os.getenv('PROJECT_NAME'),
+        metadata={
+            "user_id": username,
+            "session_id": session_id,
+            "model_name": model_name,
+            "namespaces": namespaces,
+        }
+    )
+    async def traced_logic() -> AsyncGenerator[str, None]:
+        try:
+            system_prompt_final = system_prompt if system_prompt else SYSTEM_PROMPT
+            chat = await create_live_session(model_name)
+            
+            try:
+                context = await get_relevant_context(prompt, namespaces, metafield)
+                full_prompt = (
+                    f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:"
+                    if context else f"User Question: {prompt}\n\nAnswer:"
+                )
+                
+                messages = [("system", system_prompt_final)]
+                for chats in chat_history:
+                    messages.extend(tuple(chats))
+                messages.append(("human", full_prompt))
+                
+                response = chat.stream(messages)
+                full_response = []
+
+                for chunk in response:
+                    text = chunk.content
+                    if text:
+                        full_response.append(text)
+                        yield text
+
+            except Exception as processing_error:
+                print(f"Error in message processing: {str(processing_error)}")
+                yield "I'm having trouble processing your request. Please try again."
+        
+        except Exception as session_error:
+            print(f"Session creation error: {str(session_error)}")
+            yield "I apologize, but I'm unable to process that request. Please try again later."
+
+    # Call the inner traced function and yield the stream
+    async for output in traced_logic():
+        yield output
+
+
 async def generate(
-    model_name : str,
+    model_name: str,
     prompt: str,
     username: str,
     chat_history: list[tuple[str, str]],
     namespaces: list[str],
     metafield: str,
     system_prompt: str,
-):
-    """Generate a complete response using the Gemini model."""
-    try:
-        system_prompt = system_prompt if system_prompt else SYSTEM_PROMPT
+    session_id: str = " "
+) -> str:
+    """Generate a complete response using the Gemini model with traceable logging."""
 
-        # Create the chat session
-        chat = await create_live_session(model_name)
-        
+    @traceable(
+        name="generate",
+        run_type="tool",
+        project_name=os.getenv('PROJECT_NAME'),
+        metadata={
+            "user_id": username,
+            "session_id": session_id,
+            "model_name": model_name,
+            "namespaces": namespaces,
+        }
+    )
+    async def traced_logic() -> str:
         try:
-            # Get relevant context if available
-            context = await get_relevant_context(prompt, namespaces, metafield)
-            full_prompt = (
-                f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:"
-                if context else f"User Question: {prompt}\n\nAnswer:"
-            )
+            prompt_used = system_prompt if system_prompt else SYSTEM_PROMPT
 
-            messages = [("system", system_prompt)]
-            for hist in chat_history:
-                messages.append(tuple(hist))
-            messages.append(("human", full_prompt))
-            
-            # Call chat.invoke without await since it returns a non-awaitable AIMessage
-            response = chat.invoke(messages)
-            return str(response.content)
+            # Create chat session
+            chat = await create_live_session(model_name)
 
-        except Exception as processing_error:
-            print(f"Error in message processing: {str(processing_error)}")
-            return "I'm having trouble processing your request. Please try again."
-            
-    except Exception as session_error:
-        print(f"Session creation error: {str(session_error)}")
-        return "I apologize, but I'm unable to process that request. Please try again later."
-    
+            try:
+                context = await get_relevant_context(prompt, namespaces, metafield)
+                full_prompt = (
+                    f"Context: {context}\n\nUser Question: {prompt}\n\nAnswer:"
+                    if context else f"User Question: {prompt}\n\nAnswer:"
+                )
+
+                messages = [("system", prompt_used)]
+                for hist in chat_history:
+                    messages.append(tuple(hist))
+                messages.append(("human", full_prompt))
+
+                response = chat.invoke(messages)
+                return str(response.content)
+
+            except Exception as processing_error:
+                print(f"Error in message processing: {str(processing_error)}")
+                return "I'm having trouble processing your request. Please try again."
+
+        except Exception as session_error:
+            print(f"Session creation error: {str(session_error)}")
+            return "I apologize, but I'm unable to process that request. Please try again later."
+
+    return await traced_logic()

@@ -1,15 +1,18 @@
 
-from utils.library_calling.google_library import (embeddings , pinecone_store)
+from utils.library_calling.google_library import (  pinecone_store)
 from utils.library_calling.google_library import (HumanMessage , SystemMessage , AIMessage)
-from typing import AsyncGenerator
 from datetime import datetime, timezone
-from utils.variable_constant.vertex_google import (project_id  ,location , model_id) 
-
 import os
 from models.database import db
+import uuid
 from langsmith import traceable
 
-@traceable(name="get_chat_history" , run_type="tool")
+
+@traceable( project_name=os.getenv('PROJECT_NAME') , name="get_chat_history" , run_type="tool" , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
+
 async def get_chat_history(username: str , n:int) -> list:
     """Fetch chat history for a user and convert to Langchain format."""
     collection = db.get_collection("users_chat_history")
@@ -28,7 +31,10 @@ async def get_chat_history(username: str , n:int) -> list:
     # print(chat_history)
     return chat_history
 
-@traceable(name="save_chat_message" , run_type="tool")
+@traceable( project_name=os.getenv('PROJECT_NAME') , name="save_chat_message" , run_type="tool" , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 def save_chat_message(username: str, role: str, content: str):
     """Save a chat message to MongoDB."""
     collection = db.get_collection("users_chat_history")
@@ -39,7 +45,10 @@ def save_chat_message(username: str, role: str, content: str):
         "timestamp": datetime.now(timezone.utc)
     })
     
-@traceable(name="get_relevant_context" , run_type="tool")
+@traceable( project_name=os.getenv('PROJECT_NAME') , name="get_relevant_context" , run_type="tool" , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 async def get_relevant_context(prompt: str, namespaces: list[str], metafield: str,) -> str:
     """Retrieve relevant context from Pinecone using vector search and optionally include a system prompt."""
     try:

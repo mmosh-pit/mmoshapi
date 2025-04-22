@@ -12,9 +12,13 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pinecone import Pinecone
 from utils.variable_constant.pinecone_data import index_name
 from langsmith import traceable
+import uuid
 
 @router.post("/upload")
-@traceable(name="upload-file")
+@traceable(name="upload" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 async def upload_file(
     name: str = Form(...),
     metadata: str = Form(...),
@@ -136,7 +140,10 @@ async def upload_file(
 
 
 @router.delete("/delete_by_metadata")
-@traceable(name="delete_by_metadata")
+@traceable(name="delete_by_metadata" , project_name=os.getenv('PROJECT_NAME') , metadata={
+    "user_id" : str(uuid.uuid4()),
+    "session_id" : str(uuid.uuid4())
+})
 
 async def delete_by_metadata(metadata: str):
     try:
