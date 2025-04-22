@@ -112,7 +112,8 @@ async def generate_stream(
         metadata={
             "user_id": username,
             "session_id": session_id,
-            "model_name": model_name
+            "model_name": model_name,
+            "namespaces": namespaces,
         }
     )
     async def traced_logic() -> AsyncGenerator[str, None]:
@@ -173,7 +174,8 @@ async def generate(
         metadata={
             "user_id": username,
             "session_id": session_id,
-            "model_name": model_name
+            "model_name": model_name,
+            "namespaces": namespaces,
         }
     )
     async def traced_logic() -> str:
