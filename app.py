@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from utils.variable_constant.vertex_google import (project_id  ,location )
 from routers import (chatmetadata , namesapce , stream , audio_stream)
+from langgraph_apis.routers import router as langgraph_router
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
 from fastapi.staticfiles import StaticFiles
@@ -32,7 +33,6 @@ os.environ['PINECONE_API_KEY'] = os.getenv('PINECONE_API_KEY')
 LANGSMITH_TRACING = os.getenv('LANGSMITH_TRACING')
 
 
-print("LANGSMITH_API_KEY API Key:", os.getenv('LANGSMITH_API_KEY'))
 app = FastAPI()
 
 # Add the custom middleware
@@ -55,6 +55,7 @@ app.include_router(chatmetadata.router)
 app.include_router(namesapce.router)
 app.include_router(stream.router)
 app.include_router(audio_stream.router)
+app.include_router(langgraph_router)
 
 app.mount("/audio", StaticFiles(directory="frontend/static"), name="static")
 

@@ -297,7 +297,7 @@
           const typingIndicator = createTypingIndicator();
           botMessageElement.appendChild(typingIndicator);
 
-          const apiUrl = "http://127.0.0.1:8000/generate_stream/";
+          const apiUrl = "http://127.0.0.1:8000/generate_react_agent/";
           // const apiUrl = "https://mmoshapi-471939176450.us-central1.run.app/generate_stream/";
 
           try {
@@ -313,12 +313,6 @@
                 metafield: "", // Add metadata value if needed, or leave it empty
                 system_prompt: systemPrompt, // Include system prompt,
                 chat_history : [
-                ["human", "Hi"],
-                ["ai", "Hi, how can I help you today?"],
-                ["human", "I'm looking for a new phone"],
-                ["ai", "What kind of phone are you looking for?"],
-                ["human", "I'm looking for a new phone"],
-                ["ai", "What kind of phone are you looking for?"],    
               ],
               model : "gemma2-9b-it",
               }),
