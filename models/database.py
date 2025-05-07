@@ -11,7 +11,7 @@ ca_cert_path = certifi.where()
 mongo_uri = os.getenv('MONGO_URI')
 
 client = MongoClient(mongo_uri)
-db = client.get_database("moral_panic_bot")
+db = client.get_database("live_forge")
      
 # Pydantic model for request validation
 class GenerateRequest(BaseModel):

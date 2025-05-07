@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 from utils.variable_constant.vertex_google import (project_id  ,location )
-from routers import (chatmetadata , namesapce , stream , audio_stream)
+from routers import (chatmetadata , namesapce , stream , audio_stream, solana)
 from middleware.largefile import LargeRequestMiddleware 
 import vertexai
 

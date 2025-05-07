@@ -11,6 +11,8 @@ import os
 from utils.variable_constant.prompt import SYSTEM_PROMPT
 from langsmith import traceable
 from .chat import save_chat_message , get_chat_history
+from pricing.usage import PrintCost
+
 
 model_name_groq = ["deepseek-r1-distill-llama-70b" , "deepseek-r1-distill-qwen-32b", "qwen-2.5-32b"  ,"qwen-qwq-32b" , "mistral-saba-24b",
                    "llama-3.2-1b-preview" , "llama-3.2-3b-preview","llama-3.3-70b-versatile","llama3-70b-8192","llama-3.1-8b-instant","llama3-8b-8192",
@@ -29,10 +31,8 @@ open_ai_model_list  = [
 
 xai_model_list = ["grok-2-1212"]
 
-
 @traceable(name="create_live_session" , run_type="tool")
-
-async def create_live_session(model_name: str):
+async def create_live_session(model_name: str, username: str):
     """Create a new live session with appropriate configuration."""
 
     if model_name in gemini_model_list:
@@ -48,6 +48,7 @@ async def create_live_session(model_name: str):
             max_output_tokens=2048,
             project_id=project_id,  # Set your Google Cloud Project ID
             location=location  ,# Set your Google Cloud Region
+            callbacks=[PrintCost(username=username)]
         )
     
     elif model_name in open_ai_model_list:
@@ -56,7 +57,8 @@ async def create_live_session(model_name: str):
             temperature=0,
             max_tokens=2048,
             timeout=None,
-            api_key=os.getenv("OPENAI_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY"),
+            callbacks=[PrintCost(username=username)] 
         )
 
     elif model_name in anthropic_model_list:
@@ -64,7 +66,8 @@ async def create_live_session(model_name: str):
             model=model_name,  # e.g., "claude-v1"
             temperature=0,
             max_tokens=2048,
-            api_key=os.getenv("ANTHROPIC_API_KEY")
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            callbacks=[PrintCost(username=username)]
         )
 
     
@@ -74,12 +77,14 @@ async def create_live_session(model_name: str):
             api_key=os.getenv("GROK_API_KEY"),
             model=model_name,
             temperature=0,
-            max_tokens=2048
+            max_tokens=2048,
+            callbacks=[PrintCost(username=username)]
         )
     elif model_name in xai_model_list:
         model = ChatXAI(
             xai_api_key=os.getenv("XAI_API_KEY"),
             model=model_name,
+            callbacks=[PrintCost(username=username)]
         )
   
     
@@ -107,7 +112,7 @@ async def generate_stream(
         
         # Get the chat session
       
-        chat = await create_live_session(model_name)
+        chat = await create_live_session(model_name, username)
         
         try:
             # Get relevant context 
@@ -129,16 +134,18 @@ async def generate_stream(
 
             
             # Generate the streaming response
-            response = chat.stream(messages)
+            response = chat.invoke(messages)
+
+            print("response ")
 
            
             # Process the streaming response
             full_response = []
-            for chunk in response:
-                text = chunk.content  # Extract the text from the AIMessageChunk
-                if text:
-                    full_response.append(text)
-                    yield text
+            # for chunk in response:
+            text = response.content  # Extract the text from the AIMessageChunk
+            if text:
+                full_response.append(text)
+                yield text
         
 
         except Exception as processing_error:
@@ -168,7 +175,7 @@ async def generate(
         system_prompt = system_prompt if system_prompt else SYSTEM_PROMPT
 
         # Create the chat session
-        chat = await create_live_session(model_name)
+        chat = await create_live_session(model_name, username)
         
         try:
             # Get relevant context if available
